@@ -10,12 +10,12 @@ import lombok.Data;
 
 @Data
 public class User {
-    Long id;
+    private Long id;
 
     @NotBlank(message = "name у пользователя не может отсутствовать")
-    String name;
+    private String name;
 
     @NotBlank(message = "Email у пользователя не может отсутствовать")
     @Email(message = "Email у пользователя не верного формата")
-    String email;
+    private String email;
 }

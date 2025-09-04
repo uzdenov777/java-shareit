@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 public class UserDto {
-    String name;
+    private String name;
 
     @Email(message = "Email should be valid")
-    String email;
+    private String email;
 }

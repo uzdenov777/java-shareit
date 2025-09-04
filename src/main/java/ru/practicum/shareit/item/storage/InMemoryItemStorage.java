@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Repository
 public class InMemoryItemStorage implements ItemStorage {
-    private Map<Long, Item> items = new HashMap<>();
+    private final Map<Long, Item> items = new HashMap<>();
     private static Long newId = 0L;
 
     @Override
@@ -65,11 +65,6 @@ public class InMemoryItemStorage implements ItemStorage {
         }
 
         return itemsDtoFromUser;
-    }
-
-    @Override
-    public Item delete(Long itemId) {
-        return null;
     }
 
     public boolean existsItem(Long itemId) {
