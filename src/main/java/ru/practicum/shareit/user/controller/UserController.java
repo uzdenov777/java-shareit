@@ -3,9 +3,9 @@ package ru.practicum.shareit.user.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.service.UserService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.model.dto.UserDto;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class UserController {
     @PostMapping
     public User saveUser(@RequestBody @Valid User user) {
         log.info("Saving user {}", user);
-         return userService.addUser(user);
+        return userService.addUser(user);
     }
 
     @PatchMapping("/{userId}")

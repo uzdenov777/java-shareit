@@ -5,11 +5,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.storage.BookingRepository;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.dto.CommentRequest;
+import ru.practicum.shareit.item.model.dto.CommentResponse;
 import ru.practicum.shareit.item.model.dto.ItemDto;
+import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,25 +27,26 @@ import java.util.Optional;
 @Service
 public class ItemService {
     private final ItemRepository itemRepository;
+    private final CommentRepository commentRepository;
+    private final BookingRepository bookingRepository;
 
     private final UserService userService;
 
-    public ItemService(ItemRepository itemRepository, UserService userService) {
+    public ItemService(ItemRepository itemRepository, CommentRepository commentRepository, BookingRepository bookingRepository, UserService userService) {
         this.itemRepository = itemRepository;
+        this.commentRepository = commentRepository;
+        this.bookingRepository = bookingRepository;
         this.userService = userService;
     }
 
-    public Item addItem(Long userId, Item item) {
-        boolean isExistsUser = userService.existsUser(userId);
-        if (!isExistsUser) {
-            log.info("Владелец вещи по ID:{} не найден в базе данных при добавлении новой вещи", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Владелец вещи по ID:" + userId + " не найден в базе данных при добавлении новой вещи");
-        }
+    public ItemDto add(Long userId, Item item) {
+        User user = userService.getUserById(userId);
 
-        item.setOwnerId(userId);
+        item.setOwner(user);
 
         Item save = itemRepository.save(item);
-        return save;
+        ItemDto dto = toDto(save);
+        return dto;
     }
 
     public ItemDto updateItem(Long userId, Long itemId, ItemDto itemDto) throws ResponseStatusException {
@@ -60,11 +69,6 @@ public class ItemService {
         boolean isNotEmptyDescription = StringUtils.hasText(descriptionDto);
         boolean isNotNullAvailable = availableDto != null;
 
-        if (!isNotEmptyName && !isNotEmptyDescription && !isNotNullAvailable) {
-            log.info("Все новые поля пустые для обновления вещи по ID: {}", itemId);
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Все новые поля пустые для обновления вещи по ID: " + itemId);
-        }
-
         if (isNotEmptyName) {
             existingItem.setName(nameDto);
         }
@@ -83,12 +87,7 @@ public class ItemService {
         return itemDtoRes;
     }
 
-    public ItemDto getItemById(Long userId, Long itemId) throws ResponseStatusException {
-        boolean isExistsUser = userService.existsUser(userId);
-        if (!isExistsUser) {
-            log.info("Владелец вещи по ID:{} не найден в базе данных при возврате вещи по ID", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Владелец вещи по ID:" + userId + " не найден в базе данных при вещи по ID");
-        }
+    public ItemDto getItemDtoById(Long itemId) throws ResponseStatusException {
 
         Optional<Item> itemOpt = itemRepository.findById(itemId);
         if (itemOpt.isEmpty()) {
@@ -99,6 +98,17 @@ public class ItemService {
         Item existingItem = itemOpt.get();
         ItemDto itemDtoRes = toDto(existingItem);
         return itemDtoRes;
+    }
+
+    public Item getItemById(Long itemId) throws ResponseStatusException {
+        Optional<Item> itemOpt = itemRepository.findById(itemId);
+        if (itemOpt.isEmpty()) {
+            log.info("Не найдена вещь по ID:{}", itemId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID:" + itemId);
+        }
+
+        Item existingItem = itemOpt.get();
+        return existingItem;
     }
 
     public List<ItemDto> getAllItemsFromUser(Long userId) {
@@ -140,6 +150,35 @@ public class ItemService {
         return suitableItemsDto;
     }
 
+    public CommentResponse addComment(Long authorId, Long itemId, CommentRequest commentRequest) throws ResponseStatusException {
+
+        boolean checkUserRental = checkUserRentalHistory(authorId, itemId);
+        if (!checkUserRental) {
+            log.info("Пользователь по ID: {} не имеет право добавить комментарий вещи по ID: {}, так как не брал и не завершил аренду этого предмета", authorId, itemId);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Пользователь по ID: " + authorId + " не имеет право добавить комментарий вещи по ID: " + itemId + ", так как не брал и не завершил аренду этого предмета");
+        }
+
+        Comment comment = toComment(authorId, itemId, commentRequest);
+        comment.setCreated(LocalDateTime.now());
+
+        Comment savedComment = commentRepository.save(comment);
+
+        CommentResponse commentResponse = toCommentResponse(savedComment);
+
+        return commentResponse;
+    }
+
+    private boolean checkUserRentalHistory(Long authorId, Long itemId) {
+        List<Booking> bookings = bookingRepository.findPastByBookerIdAndItemId(authorId, itemId);
+
+        if (bookings.isEmpty()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     private void checkValidNewVersionItem(Long userId, Item item) throws ResponseStatusException {
         if (Objects.isNull(userId)) {
             log.info("При обновлении вещи не может отсутствовать ID владельца");
@@ -147,7 +186,8 @@ public class ItemService {
         }
 
         Long itemId = item.getId();
-        Long ownerId = item.getOwnerId();
+        User owner = item.getOwner();
+        Long ownerId = owner.getId();
         boolean isUserOwner = userId.equals(ownerId);
         boolean isExistsUser = userService.existsUser(userId);
 
@@ -163,11 +203,57 @@ public class ItemService {
     }
 
     private ItemDto toDto(Item item) {
+        Long id = item.getId();
+        String name = item.getName();
+        String description = item.getDescription();
+        boolean available = item.getAvailable();
+        List<Comment> comments = item.getComments();
+
         ItemDto itemDto = new ItemDto();
-        itemDto.setId(item.getId());
-        itemDto.setName(item.getName());
-        itemDto.setDescription(item.getDescription());
-        itemDto.setAvailable(item.getAvailable());
+        itemDto.setId(id);
+        itemDto.setName(name);
+        itemDto.setDescription(description);
+        itemDto.setAvailable(available);
+
+        List<CommentResponse> commentResponseList = new ArrayList<>();
+        for (Comment comment : comments) {
+            CommentResponse commentResponse = toCommentResponse(comment);
+
+            commentResponseList.add(commentResponse);
+        }
+
+        itemDto.setComments(commentResponseList);
+
         return itemDto;
+    }
+
+    private Comment toComment(Long authorId, Long itemId, CommentRequest commentRequest) {
+        Item item = getItemById(itemId);
+        User author = userService.getUserById(authorId);
+        String textComment = commentRequest.getText();
+
+        Comment comment = new Comment();
+        comment.setItem(item);
+        comment.setAuthor(author);
+        comment.setText(textComment);
+
+        return comment;
+    }
+
+    private CommentResponse toCommentResponse(Comment comment) {
+        User author = comment.getAuthor();
+
+        Long id = comment.getId();
+        String text = comment.getText();
+        String authorName = author.getName();
+        LocalDateTime createdDate = comment.getCreated();
+
+        CommentResponse commentResponse = new CommentResponse();
+        commentResponse.setId(id);
+        commentResponse.setAuthorName(authorName);
+        commentResponse.setText(text);
+        commentResponse.setCreated(createdDate);
+
+        return commentResponse;
     }
 }

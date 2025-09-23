@@ -98,8 +98,8 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь для возвращения с ID: " + userId);
         }
 
-        User userRes = userOpt.get();
-        return userRes;
+        User user = userOpt.get();
+        return user;
     }
 
     public List<User> getAllUsers() {

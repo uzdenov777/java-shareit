@@ -3,9 +3,11 @@ package ru.practicum.shareit.item.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.dto.CommentRequest;
+import ru.practicum.shareit.item.model.dto.CommentResponse;
 import ru.practicum.shareit.item.model.dto.ItemDto;
+import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
 
@@ -24,8 +26,8 @@ public class ItemController {
     }
 
     @PostMapping
-    public Item addItem(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestBody @Valid Item newItem) {
-        return itemService.addItem(userId, newItem);
+    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestBody @Valid Item newItem) {
+        return itemService.add(userId, newItem);
     }
 
     @PatchMapping("/{itemId}")
@@ -34,8 +36,8 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId) {
-        return itemService.getItemById(userId, itemId);
+    public ItemDto getItemById(@PathVariable Long itemId) {
+        return itemService.getItemDtoById(itemId);
     }
 
     @GetMapping
@@ -48,5 +50,10 @@ public class ItemController {
         System.out.println(text);
         System.out.println(userId);
         return itemService.itemSearch(text, userId);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentResponse addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody CommentRequest commentRequest) {
+        return itemService.addComment(userId, itemId, commentRequest);
     }
 }
