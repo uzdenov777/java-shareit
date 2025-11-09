@@ -7,6 +7,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.dto.CommentRequest;
 import ru.practicum.shareit.item.model.dto.CommentResponse;
 import ru.practicum.shareit.item.model.dto.ItemDto;
+import ru.practicum.shareit.item.model.dto.ItemResponse;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -26,29 +27,33 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestBody @Valid Item newItem) {
-        return itemService.add(userId, newItem);
+    public ItemResponse add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid ItemDto newItemDto) {
+        return itemService.add(ownerId, newItemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody ItemDto itemDto) {
+    public ItemResponse updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody ItemDto itemDto) {
         return itemService.updateItem(userId, itemId, itemDto);
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@PathVariable Long itemId) {
-        return itemService.getItemDtoById(itemId);
+    public ItemResponse getItemById(@PathVariable Long itemId) {
+        return itemService.getItemResponseById(itemId);
     }
 
     @GetMapping
-    public List<ItemDto> getAllItemsFromUser(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemService.getAllItemsFromUser(userId);
+    public List<ItemResponse> getAllItemsFromUser(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                  @RequestParam(name = "from", defaultValue = "0") int from,
+                                                  @RequestParam(name = "size", defaultValue = "10") int size) {
+        return itemService.getAllItemsFromUser(from, size, userId);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItem(@RequestParam(defaultValue = "") String text, @RequestHeader("X-Sharer-User-Id") Long userId) {
-        ;
-        return itemService.itemSearch(text, userId);
+    public List<ItemResponse> searchItem(@RequestParam(defaultValue = "") String text,
+                                         @RequestHeader("X-Sharer-User-Id") Long userId,
+                                         @RequestParam(name = "from", defaultValue = "0") int from,
+                                         @RequestParam(name = "size", defaultValue = "10") int size) {
+        return itemService.itemSearch(text, userId, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

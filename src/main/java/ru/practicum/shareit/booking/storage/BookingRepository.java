@@ -1,15 +1,17 @@
 package ru.practicum.shareit.booking.storage;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.util.MyPageRequest;
 
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    List<Booking> findAllByBookerId(Long bookerId);
+    Page<Booking> findAllByBookerId(MyPageRequest pageRequest, Long bookerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
@@ -17,14 +19,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND b.end >= CURRENT_TIMESTAMP " +
             "AND b.status = 'APPROVED'" +
             "AND b.booker.id = :id")
-    List<Booking> findCurrentByBookerId(@Param("id") Long bookerId);
+    Page<Booking> findCurrentByBookerId(MyPageRequest pageRequest, @Param("id") Long bookerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.end < CURRENT_TIMESTAMP " +
             "AND b.status = 'APPROVED' " +
             "AND b.booker.id = :id")
-    List<Booking> findPastByBookerId(@Param("id") Long bookerId);
+    Page<Booking> findPastByBookerId(MyPageRequest pageRequest, @Param("id") Long bookerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
@@ -37,26 +39,25 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.start > CURRENT_TIMESTAMP " +
-            "AND b.status = 'APPROVED' " +
             "AND b.booker.id = :id")
-    List<Booking> findFutureByBookerId(@Param("id") Long bookerId);
+    Page<Booking> findFutureByBookerId(MyPageRequest pageRequest, @Param("id") Long bookerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.status = 'WAITING'" +
             "AND b.booker.id = :id")
-    List<Booking> findWaitingByBookerId(@Param("id") Long bookerId);
+    Page<Booking> findWaitingByBookerId(MyPageRequest pageRequest, @Param("id") Long bookerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.status = 'REJECTED'" +
             "AND b.booker.id = :id")
-    List<Booking> findRejectedByBookerId(@Param("id") Long bookerId);
+    Page<Booking> findRejectedByBookerId(MyPageRequest pageRequest, @Param("id") Long bookerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.item.owner.id = :id")
-    List<Booking> findAllByOwnerId(@Param("id") Long ownerId);
+    Page<Booking> findAllByOwnerId(MyPageRequest pageRequest, @Param("id") Long ownerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
@@ -64,31 +65,31 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND b.end >= CURRENT_TIMESTAMP " +
             "AND b.status = 'APPROVED'" +
             "AND b.item.owner.id = :id")
-    List<Booking> findCurrentByOwnerId(@Param("id") Long ownerId);
+    Page<Booking> findCurrentByOwnerId(MyPageRequest pageRequest, @Param("id") Long ownerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.end < CURRENT_TIMESTAMP " +
             "AND b.status = 'APPROVED' " +
             "AND b.item.owner.id = :id")
-    List<Booking> findPastByOwnerId(@Param("id") Long ownerId);
+    Page<Booking> findPastByOwnerId(MyPageRequest pageRequest, @Param("id") Long ownerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.start > CURRENT_TIMESTAMP " +
             "AND b.status = 'APPROVED' " +
             "AND b.item.owner.id = :id")
-    List<Booking> findFutureByOwnerId(@Param("id") Long ownerId);
+    Page<Booking> findFutureByOwnerId(MyPageRequest pageRequest, @Param("id") Long ownerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.status = 'WAITING'" +
             "AND b.item.owner.id = :id")
-    List<Booking> findWaitingByOwnerId(@Param("id") Long ownerId);
+    Page<Booking> findWaitingByOwnerId(MyPageRequest pageRequest, @Param("id") Long ownerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
             "WHERE b.status = 'REJECTED'" +
             "AND b.item.owner.id = :id")
-    List<Booking> findRejectedByOwnerId(@Param("id") Long ownerId);
+    Page<Booking> findRejectedByOwnerId(MyPageRequest pageRequest, @Param("id") Long ownerId);
 }

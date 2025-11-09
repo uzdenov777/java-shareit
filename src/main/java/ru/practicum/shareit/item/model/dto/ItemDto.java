@@ -1,9 +1,8 @@
 package ru.practicum.shareit.item.model.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * TODO Sprint add-controllers.
@@ -14,15 +13,14 @@ public class ItemDto {
 
     private Long id;
 
+    @NotBlank(message = "Название  у вещи не может отсутствовать")
     private String name;
 
+    @NotBlank(message = "Описание у вещи не может отсутствовать")
     private String description;
 
-    private LocalDateTime lastBooking;
+    @NotNull(message = "Не может отсутствовать статус у Вещи")
+    private Boolean available;
 
-    private LocalDateTime nextBooking;
-
-    private boolean available;
-
-    private List<CommentResponse> comments;
+    private Long requestId;
 }

@@ -49,17 +49,21 @@ public class BookingController {
 
     @GetMapping
     public List<BookingResponse> getListAllBookingsForCurrentBooker(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                                    @RequestParam(defaultValue = "all") String state) {
+                                                                    @RequestParam(name = "state", defaultValue = "all") String state,
+                                                                    @RequestParam(name = "from", defaultValue = "0") int from,
+                                                                    @RequestParam(name = "size", defaultValue = "10") int size) {
         BookingStateFilter bookingStateFilter = BookingStateFilter.valueOf(state.toUpperCase());
         log.info("Запрос на возвращение всех бронирований со статусом {} текущего арендодателя по ID: {}", bookingStateFilter, userId);
-        return bookingService.getListAllBookingsForCurrentUser(userId, bookingStateFilter);
+        return bookingService.getListAllBookingsForCurrentUser(userId, bookingStateFilter, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingResponse> getListBookingsForCurrentOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                                @RequestParam(defaultValue = "all") String state) {
+                                                                @RequestParam(name = "state", defaultValue = "all") String state,
+                                                                @RequestParam(name = "from", defaultValue = "0") int from,
+                                                                @RequestParam(name = "size", defaultValue = "10") int size) {
         BookingStateFilter bookingStateFilter = BookingStateFilter.valueOf(state.toUpperCase());
         log.info("Запрос на возвращение всех бронирований со статусом {} текущего хозяина по ID: {}", bookingStateFilter, userId);
-        return bookingService.getListAllBookingsForCurrentOwner(userId, bookingStateFilter);
+        return bookingService.getListAllBookingsForCurrentOwner(userId, bookingStateFilter, from, size);
     }
 }

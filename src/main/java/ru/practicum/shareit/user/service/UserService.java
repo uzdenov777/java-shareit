@@ -22,12 +22,17 @@ public class UserService {
         this.userRepository = userStorage;
     }
 
-    public User addUser(User user) {
+    public UserDto addUser(UserDto userDto) {
         try {
-            User save = userRepository.save(user);
-            return save;
+            User newUser = toUser(userDto);
+
+            User save = userRepository.save(newUser);
+
+            UserDto savedUserDto = toUserDto(save);
+            return savedUserDto;
+
         } catch (DataIntegrityViolationException e) {
-            String email = user.getEmail();
+            String email = userDto.getEmail();
             log.info("Электронная почта уже занята email: {}", email);
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Электронная почта уже занята email: " + email);
         }
@@ -108,5 +113,32 @@ public class UserService {
 
     public boolean existsUser(Long userId) {
         return userRepository.existsById(userId);
+    }
+
+    private User toUser(UserDto userDto) {
+
+        String name = userDto.getName();
+        String email = userDto.getEmail();
+
+        User user = new User();
+
+        user.setName(name);
+        user.setEmail(email);
+
+        return user;
+    }
+
+    private UserDto toUserDto(User save) {
+        Long id = save.getId();
+        String name = save.getName();
+        String email = save.getEmail();
+
+        UserDto userDto = new UserDto();
+
+        userDto.setId(id);
+        userDto.setName(name);
+        userDto.setEmail(email);
+
+        return userDto;
     }
 }

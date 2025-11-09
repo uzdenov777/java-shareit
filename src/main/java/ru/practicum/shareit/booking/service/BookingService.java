@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,6 +15,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.util.MyPageRequest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -147,10 +149,10 @@ public class BookingService {
         BookingStatus status = booking.getStatus();
 
         Item item = booking.getItem();
-        BookingResponse.ItemResponse itemResponse = toItemResponse(item);
+        BookingResponse.ItemRes itemResponse = toItemResponse(item);
 
         User user = booking.getBooker();
-        BookingResponse.UserResponse userResponse = toUserResponse(user);
+        User userResponse = toUserResponse(user);
 
         BookingResponse bookingResponse = new BookingResponse();
         bookingResponse.setId(id);
@@ -163,12 +165,12 @@ public class BookingService {
         return bookingResponse;
     }
 
-    private BookingResponse.ItemResponse toItemResponse(Item item) {
+    private BookingResponse.ItemRes toItemResponse(Item item) {
         Long itemId = item.getId();
         String itemName = item.getName();
         String itemDescription = item.getDescription();
 
-        BookingResponse.ItemResponse itemResponse = new BookingResponse.ItemResponse();
+        BookingResponse.ItemRes itemResponse = new BookingResponse.ItemRes();
         itemResponse.setId(itemId);
         itemResponse.setName(itemName);
         itemResponse.setDescription(itemDescription);
@@ -176,12 +178,12 @@ public class BookingService {
         return itemResponse;
     }
 
-    private BookingResponse.UserResponse toUserResponse(User user) {
+    private User toUserResponse(User user) {
         Long userId = user.getId();
         String name = user.getName();
         String email = user.getEmail();
 
-        BookingResponse.UserResponse userResponse = new BookingResponse.UserResponse();
+        User userResponse = new User();
         userResponse.setId(userId);
         userResponse.setName(name);
         userResponse.setEmail(email);
@@ -232,7 +234,7 @@ public class BookingService {
         }
     }
 
-    public List<BookingResponse> getListAllBookingsForCurrentUser(Long userId, BookingStateFilter bookingStateFilter) {
+    public List<BookingResponse> getListAllBookingsForCurrentUser(Long userId, BookingStateFilter bookingStateFilter, int from, int size) {
         boolean isExistBooker = userService.existsUser(userId);
 
         if (!isExistBooker) {
@@ -241,26 +243,27 @@ public class BookingService {
                     "Не найден пользователь пользователь-арендатор по ID: " + userId + ", для возврата списка с фильтром " + bookingStateFilter);
         }
 
-        List<Booking> listBookings;
+        MyPageRequest pageRequest = new MyPageRequest(from, size);
+        Page<Booking> page;
 
         switch (bookingStateFilter) {
             case ALL:
-                listBookings = bookingRepository.findAllByBookerId(userId);
+                page = bookingRepository.findAllByBookerId(pageRequest, userId);
                 break;
             case CURRENT:
-                listBookings = bookingRepository.findCurrentByBookerId(userId);
+                page = bookingRepository.findCurrentByBookerId(pageRequest, userId);
                 break;
             case PAST:
-                listBookings = bookingRepository.findPastByBookerId(userId);
+                page = bookingRepository.findPastByBookerId(pageRequest, userId);
                 break;
             case FUTURE:
-                listBookings = bookingRepository.findFutureByBookerId(userId);
+                page = bookingRepository.findFutureByBookerId(pageRequest, userId);
                 break;
             case WAITING:
-                listBookings = bookingRepository.findWaitingByBookerId(userId);
+                page = bookingRepository.findWaitingByBookerId(pageRequest, userId);
                 break;
             case REJECTED:
-                listBookings = bookingRepository.findRejectedByBookerId(userId);
+                page = bookingRepository.findRejectedByBookerId(pageRequest, userId);
                 break;
             default:
                 log.info("Не существует фильтра {}, пользователь-арендатор по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
@@ -268,6 +271,7 @@ public class BookingService {
                         "Не существует фильтра " + bookingStateFilter + ", пользователь-арендатор по ID: " + userId + " запросил бронирования по фильтру");
         }
 
+        List<Booking> listBookings = page.getContent();
         List<BookingResponse> listBookingResponse = new ArrayList<>();
         for (Booking booking : listBookings) {
             BookingResponse response = toBookingResponse(booking);
@@ -277,7 +281,7 @@ public class BookingService {
         return listBookingResponse;
     }
 
-    public List<BookingResponse> getListAllBookingsForCurrentOwner(Long userId, BookingStateFilter bookingStateFilter) {
+    public List<BookingResponse> getListAllBookingsForCurrentOwner(Long userId, BookingStateFilter bookingStateFilter, int from, int size) {
         boolean isExistOwner = userService.existsUser(userId);
 
         if (!isExistOwner) {
@@ -286,26 +290,27 @@ public class BookingService {
                     "Не найден пользователь пользователь-хозяин по ID: " + userId + ", для возврата списка с фильтром " + bookingStateFilter);
         }
 
-        List<Booking> listBookings;
+        MyPageRequest pageRequest = new MyPageRequest(from, size);
+        Page<Booking> page;
 
         switch (bookingStateFilter) {
             case ALL:
-                listBookings = bookingRepository.findAllByOwnerId(userId);
+                page = bookingRepository.findAllByOwnerId(pageRequest, userId);
                 break;
             case CURRENT:
-                listBookings = bookingRepository.findCurrentByOwnerId(userId);
+                page = bookingRepository.findCurrentByOwnerId(pageRequest, userId);
                 break;
             case PAST:
-                listBookings = bookingRepository.findPastByOwnerId(userId);
+                page = bookingRepository.findPastByOwnerId(pageRequest, userId);
                 break;
             case FUTURE:
-                listBookings = bookingRepository.findFutureByOwnerId(userId);
+                page = bookingRepository.findFutureByOwnerId(pageRequest, userId);
                 break;
             case WAITING:
-                listBookings = bookingRepository.findWaitingByOwnerId(userId);
+                page = bookingRepository.findWaitingByOwnerId(pageRequest, userId);
                 break;
             case REJECTED:
-                listBookings = bookingRepository.findRejectedByOwnerId(userId);
+                page = bookingRepository.findRejectedByOwnerId(pageRequest, userId);
                 break;
             default:
                 log.info("Не существует фильтра {}, хозяина по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
@@ -313,6 +318,7 @@ public class BookingService {
                         "Не существует фильтра " + bookingStateFilter + ", хозяина по ID: " + userId + " запросил бронирования по фильтру");
         }
 
+        List<Booking> listBookings = page.getContent();
         List<BookingResponse> listBookingResponse = new ArrayList<>();
         for (Booking booking : listBookings) {
             BookingResponse response = toBookingResponse(booking);
