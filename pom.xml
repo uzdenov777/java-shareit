@@ -179,32 +179,32 @@
                                         <limits>
                                             <limit>
                                                 <counter>INSTRUCTION</counter>
-                                                <value>COVERED-RATIO</value>
+                                                <value>COVEREDRATIO</value>
                                                 <minimum>0.01</minimum>
                                             </limit>
                                             <limit>
                                                 <counter>LINE</counter>
-                                                <value>COVERED-RATIO</value>
+                                                <value>COVEREDRATIO</value>
                                                 <minimum>0.9</minimum>
                                             </limit>
                                             <limit>
                                                 <counter>BRANCH</counter>
-                                                <value>COVERED-RATIO</value>
+                                                <value>COVEREDRATIO</value>
                                                 <minimum>0.6</minimum>
                                             </limit>
                                             <limit>
                                                 <counter>COMPLEXITY</counter>
-                                                <value>COVERED-RATIO</value>
+                                                <value>COVEREDRATIO</value>
                                                 <minimum>0.6</minimum>
                                             </limit>
                                             <limit>
                                                 <counter>METHOD</counter>
-                                                <value>COVERED-RATIO</value>
+                                                <value>COVEREDRATIO</value>
                                                 <minimum>0.7</minimum>
                                             </limit>
                                             <limit>
                                                 <counter>CLASS</counter>
-                                                <value>MISSED-COUNT</value>
+                                                <value>MISSEDCOUNT</value>
                                                 <maximum>1</maximum>
                                             </limit>
                                         </limits>
