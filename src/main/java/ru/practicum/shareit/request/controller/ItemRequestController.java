@@ -25,19 +25,19 @@ public class ItemRequestController {
     }
 
     @PostMapping
-    public ItemRequest create(@RequestHeader("X-Sharer-User-Id") Long RequestorId, @RequestBody @Valid ItemRequest itemRequestDto) {
-        return itemRequestService.create(RequestorId, itemRequestDto);
+    public ItemRequest create(@RequestHeader("X-Sharer-User-Id") Long requestorId, @RequestBody @Valid ItemRequest itemRequestDto) {
+        return itemRequestService.create(requestorId, itemRequestDto);
     }
 
     @GetMapping
-    public List<ItemRequestDto> getByRequestorId(@RequestHeader("X-Sharer-User-Id") Long RequestorId) {
-        return itemRequestService.getByRequestor(RequestorId);
+    public List<ItemRequestDto> getByRequestorId(@RequestHeader("X-Sharer-User-Id") Long requestorId) {
+        return itemRequestService.getByRequestor(requestorId);
     }
 
     @GetMapping("/all")
     public List<ItemRequestDto> getAll(@RequestParam(name = "from", defaultValue = "0") int from
-            , @RequestParam(name = "size", defaultValue = "10") int size
-            , @RequestHeader("X-Sharer-User-Id") Long requestorId) {
+            ,@RequestParam(name = "size", defaultValue = "10") int size
+            ,@RequestHeader("X-Sharer-User-Id") Long requestorId) {
         return itemRequestService.getAll(from, size, requestorId);
     }
 
