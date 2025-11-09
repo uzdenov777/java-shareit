@@ -25,6 +25,7 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class BookingService {
+
     private final BookingRepository bookingRepository;
     private final UserService userService;
     private final ItemService itemService;
