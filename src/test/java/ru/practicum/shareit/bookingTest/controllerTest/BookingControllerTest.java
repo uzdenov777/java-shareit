@@ -10,7 +10,6 @@ import ru.practicum.shareit.booking.service.BookingService;
 @WebMvcTest(BookingController.class)
 @AutoConfigureMockMvc
 public class BookingControllerTest {
-    
     @MockBean
     private BookingService bookingService;
 

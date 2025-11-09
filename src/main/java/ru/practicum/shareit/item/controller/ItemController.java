@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.dto.CommentRequest;
 import ru.practicum.shareit.item.model.dto.CommentResponse;
 import ru.practicum.shareit.item.model.dto.ItemDto;
