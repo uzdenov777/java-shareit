@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.model.dto.CommentRequest;
 import ru.practicum.shareit.item.model.dto.CommentResponse;
@@ -9,7 +10,9 @@ import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemResponse;
 import ru.practicum.shareit.item.service.ItemService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * TODO Sprint add-controllers.
@@ -36,8 +39,8 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemResponse getItemById(@PathVariable Long itemId) {
-        return itemService.getItemResponseById(itemId);
+    public ItemResponse getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId) {
+        return itemService.getItemResponseByIdFromUser(userId ,itemId);
     }
 
     @GetMapping
@@ -56,7 +59,20 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentResponse addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody CommentRequest commentRequest) {
-        return itemService.addComment(userId, itemId, commentRequest);
+    public ResponseEntity<?> addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody CommentRequest commentRequest) {
+        String textComment = commentRequest.getText();
+
+        log.info("Добавление комментария: {} для вещи по ID: {} пользователем по ID: {}", textComment, itemId, userId);
+
+        if (textComment.isBlank()) {
+            log.error("Передан пустой текст комментария для вещи по ID: {} пользователем по ID: {}", itemId, userId);
+            Map<String, String> errors = new HashMap<>();
+            errors.put("errors", "Не верно переданные данные в теле");
+
+            return ResponseEntity.badRequest().body(errors);
+        }
+
+        CommentResponse comment = itemService.addComment(userId, itemId, textComment);
+        return ResponseEntity.ok(comment);
     }
 }

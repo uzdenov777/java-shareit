@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.model.dto;
 
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -14,13 +13,21 @@ public class ItemResponse {
 
     private String description;
 
-    private LocalDateTime lastBooking;
+    private BookingRes lastBooking;
 
-    private LocalDateTime nextBooking;
+    private BookingRes nextBooking;
 
     private boolean available;
 
     private Long requestId;
 
     private List<CommentResponse> comments;
+
+    @Data
+    public static class BookingRes {
+
+        private Long id;
+
+        private Long bookerId;
+    }
 }

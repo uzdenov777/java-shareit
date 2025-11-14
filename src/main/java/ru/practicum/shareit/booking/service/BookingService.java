@@ -53,13 +53,21 @@ public class BookingService {
 
     public BookingResponse confirmingOrRejectingBookingRequest(Long userId, Long bookingId, Boolean solution) {
         Booking booking = getBooking(bookingId);
+        BookingStatus status = booking.getStatus();
+
         Item item = booking.getItem();
+
         User owner = item.getOwner();
         Long ownerId = owner.getId();
 
         if (!userId.equals(ownerId)) {
-            log.info("Пользователь по ID: {} не может изменить статус бронирования по ID: {}, потому что не является владельцем вещи", userId, bookingId);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Пользователь по ID: " + userId + " не может изменить статус бронирования по ID: " + bookingId + ", потому что не является владельцем вещи");
+            log.error("Пользователь по ID: {} не может изменить статус бронирования по ID: {}, потому что не является владельцем вещи", userId, bookingId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь по ID: " + userId + " не может изменить статус бронирования по ID: " + bookingId + ", потому что не является владельцем вещи");
+        }
+
+        if (!BookingStatus.WAITING.equals(status)) {
+            log.error("Владелец по iD: {} не может поменять статус бронирования вещи после принятия решения.", userId);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Владелец по iD: " + userId + "не может поменять статус бронирования вещи после принятия решения.");
         }
 
         if (solution) {
@@ -79,7 +87,7 @@ public class BookingService {
         Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
 
         if (bookingOpt.isEmpty()) {
-            log.info("При запросе на возвращение бронирование не найдено по ID: {}", bookingId);
+            log.error("При запросе на возвращение бронирование не найдено по ID: {}", bookingId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "При запросе на возвращение бронирование не найдено по ID: " + bookingId);
         }
 
@@ -87,8 +95,8 @@ public class BookingService {
 
         boolean isOwnerOrBooker = isOwnerOrBooker(booking, userId);
         if (!isOwnerOrBooker) {
-            log.info("Запрос на возвращение бронирования по ID: {} может только хозяин вещи, либо автор бронирования", bookingId);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            log.error("Запрос на возвращение бронирования по ID: {} может только хозяин вещи, либо автор бронирования", bookingId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Запрос на возвращение бронирования по ID: " + bookingId + " может только хозяин вещи, либо автор бронирования");
         }
 
@@ -100,7 +108,7 @@ public class BookingService {
         Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
 
         if (bookingOpt.isEmpty()) {
-            log.info("При запросе на возвращение бронирование не найдено по ID: {} для изменения статуса", bookingId);
+            log.error("При запросе на возвращение бронирование не найдено по ID: {} для изменения статуса", bookingId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "При запросе на возвращение бронирование не найдено по ID: " + bookingId + "для изменения статуса");
         }
 
@@ -195,42 +203,53 @@ public class BookingService {
     private void checkPossibilityBooking(Booking booking) throws ResponseStatusException {
         Item bookingItem = booking.getItem();
         Long itemId = bookingItem.getId();
+        User ownerItem = bookingItem.getOwner();
+        User bookerItem = booking.getBooker();
+        Long ownerId = ownerItem.getId();
+        Long bookerId = bookerItem.getId();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime start = booking.getStart();
         LocalDateTime end = booking.getEnd();
 
+        boolean isEqualsOwnerAndBooker = ownerId.equals(bookerId);
         boolean isEndAfterNow = end.isAfter(now);
         boolean isStartAfterNow = start.isAfter(now);
         boolean isEndEqualStart = start.isEqual(end);
         boolean isEndAfterStart = end.isAfter(start);
         boolean isAvailableItem = bookingItem.getAvailable();
 
+        if (isEqualsOwnerAndBooker){
+            log.error("Владелец по ID: {} не может сам у себя забронировать вещь по ID: {}", ownerId, bookingItem.getId());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Владелец по ID: " + ownerId + "не может сам у себя забронировать вещь по ID: " + bookingItem.getId());
+        }
+
         if (!isEndAfterNow) {
-            log.info("Конец времени бронирования не может быть в прошлом! Конец: {}, для предмета по ID: {} ", end, itemId);
+            log.error("Конец времени бронирования не может быть в прошлом! Конец: {}, для предмета по ID: {} ", end, itemId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Конец времени бронирования не может быть в прошлом! Конец: " + end + ", для предмета по ID: " + itemId);
         }
 
         if (!isStartAfterNow) {
-            log.info("Начало времени бронирования не может быть в прошлом! Начало: {}, для предмета по ID: {} ", start, itemId);
+            log.error("Начало времени бронирования не может быть в прошлом! Начало: {}, для предмета по ID: {} ", start, itemId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Начало времени бронирования не может быть в прошлом! Начало: " + start + ", для предмета по ID: " + itemId);
         }
 
         if (isEndEqualStart) {
-            log.info("Конец времени бронирования не может быть равен началу! Начало: {}, конец: {}, для предмета по ID: {} ", start, end, itemId);
+            log.error("Конец времени бронирования не может быть равен началу! Начало: {}, конец: {}, для предмета по ID: {} ", start, end, itemId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Конец времени бронирования не может быть равен началу! Начало: " + start + ", конец: " + end + ", для предмета по ID: " + itemId);
         }
 
         if (!isEndAfterStart) {
-            log.info("Конец времени бронирования не может быть раньше начала! Начало: {}, конец: {}, для предмета по ID: {} ", start, end, itemId);
+            log.error("Конец времени бронирования не может быть раньше начала! Начало: {}, конец: {}, для предмета по ID: {} ", start, end, itemId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Конец времени бронирования не может быть раньше начала! Начало: " + start + ", конец: " + end + ", для предмета по ID: " + itemId);
         }
 
         if (!isAvailableItem) {
-            log.info("Недоступен сейчас для бронирования предмет по ID: {}", itemId);
+            log.error("Недоступен сейчас для бронирования предмет по ID: {}", itemId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Недоступен сейчас для бронирования предмет по ID: " + itemId);
         }
     }
@@ -239,7 +258,7 @@ public class BookingService {
         boolean isExistBooker = userService.existsUser(userId);
 
         if (!isExistBooker) {
-            log.info("Не найден пользователь пользователь-арендатор по ID: {}, для возврата списка с фильтром {}", userId, bookingStateFilter);
+            log.error("Не найден пользователь пользователь-арендатор по ID: {}, для возврата списка с фильтром {}", userId, bookingStateFilter);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Не найден пользователь пользователь-арендатор по ID: " + userId + ", для возврата списка с фильтром " + bookingStateFilter);
         }
@@ -249,7 +268,7 @@ public class BookingService {
 
         switch (bookingStateFilter) {
             case ALL:
-                page = bookingRepository.findAllByBookerId(pageRequest, userId);
+                page = bookingRepository.findAllByBookerIdOrderByIdDesc(pageRequest, userId);
                 break;
             case CURRENT:
                 page = bookingRepository.findCurrentByBookerId(pageRequest, userId);
@@ -267,7 +286,7 @@ public class BookingService {
                 page = bookingRepository.findRejectedByBookerId(pageRequest, userId);
                 break;
             default:
-                log.info("Не существует фильтра {}, пользователь-арендатор по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
+                log.error("Не существует фильтра {}, пользователь-арендатор по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Не существует фильтра " + bookingStateFilter + ", пользователь-арендатор по ID: " + userId + " запросил бронирования по фильтру");
         }
@@ -286,7 +305,7 @@ public class BookingService {
         boolean isExistOwner = userService.existsUser(userId);
 
         if (!isExistOwner) {
-            log.info("Не найден пользователь пользователь-хозяин по ID: {}, для возврата списка с фильтром {}", userId, bookingStateFilter);
+            log.error("Не найден пользователь пользователь-хозяин по ID: {}, для возврата списка с фильтром {}", userId, bookingStateFilter);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Не найден пользователь пользователь-хозяин по ID: " + userId + ", для возврата списка с фильтром " + bookingStateFilter);
         }
@@ -314,7 +333,7 @@ public class BookingService {
                 page = bookingRepository.findRejectedByOwnerId(pageRequest, userId);
                 break;
             default:
-                log.info("Не существует фильтра {}, хозяина по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
+                log.error("Не существует фильтра {}, хозяина по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Не существует фильтра " + bookingStateFilter + ", хозяина по ID: " + userId + " запросил бронирования по фильтру");
         }

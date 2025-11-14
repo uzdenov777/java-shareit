@@ -40,9 +40,9 @@ public class ItemRequest {
     private String description;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    @Column(name = "creation_date")
-    private LocalDateTime creationDate;
+    @Column(name = "created")
+    private LocalDateTime created;
 
     @OneToMany(mappedBy = "request", fetch = FetchType.LAZY)
-    private List<Item> responseItems = new ArrayList<>();
+    private List<Item> items = new ArrayList<>();
 }

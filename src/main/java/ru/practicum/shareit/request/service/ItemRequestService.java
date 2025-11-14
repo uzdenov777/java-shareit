@@ -41,7 +41,7 @@ public class ItemRequestService {
         LocalDateTime creationDate = LocalDateTime.now();
 
         itemRequest.setRequestor(requestor);
-        itemRequest.setCreationDate(creationDate);
+        itemRequest.setCreated(creationDate);
 
         ItemRequest saveItemRequest = itemRequestRepository.save(itemRequest);
 
@@ -74,7 +74,7 @@ public class ItemRequestService {
     public List<ItemRequestDto> getAll(int from, int size, Long requestorId) {
         User requestor = userService.getUserById(requestorId);
 
-        Sort sort = Sort.by(Sort.Direction.DESC, "creationDate");
+        Sort sort = Sort.by(Sort.Direction.DESC, "created");
         MyPageRequest pageRequest = new MyPageRequest(from, size, sort);
         Page<ItemRequest> page = itemRequestRepository.findByRequestorNot(pageRequest, requestor);
         List<ItemRequest> itemRequests = page.getContent();
@@ -101,15 +101,17 @@ public class ItemRequestService {
     }
 
     private ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
+        Long id = itemRequest.getId();
         String description = itemRequest.getDescription();
-        LocalDateTime creationDate = itemRequest.getCreationDate();
-        List<Item> responseItems = itemRequest.getResponseItems();
+        LocalDateTime creationDate = itemRequest.getCreated();
+        List<Item> responseItems = itemRequest.getItems();
 
         ItemRequestDto itemRequestDto = new ItemRequestDto();
+        itemRequestDto.setId(id);
         itemRequestDto.setDescription(description);
-        itemRequestDto.setCreationDate(creationDate);
+        itemRequestDto.setCreated(creationDate);
         List<ItemDto> responseItemsDto = toItemsDtoList(responseItems);
-        itemRequestDto.setResponseItems(responseItemsDto);
+        itemRequestDto.setItems(responseItemsDto);
 
         return itemRequestDto;
     }

@@ -11,10 +11,10 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.dto.CommentRequest;
 import ru.practicum.shareit.item.model.dto.CommentResponse;
 import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemResponse;
+import ru.practicum.shareit.item.model.dto.ItemResponse.BookingRes;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -95,16 +95,32 @@ public class ItemService {
         return response;
     }
 
-    public ItemResponse getItemResponseById(Long itemId) throws ResponseStatusException {
+    public ItemResponse getItemResponseByIdFromUser(Long userId, Long itemId) throws ResponseStatusException {
+
+        boolean exists = userService.existsUser(userId);
+        if (!exists) {
+            log.error("Не найден пользователь по ID: {}", userId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + itemId);
+        }
+
 
         Optional<Item> itemOpt = itemRepository.findById(itemId);
         if (itemOpt.isEmpty()) {
-            log.info("Не найдена вещь по ID:{}", itemId);
+            log.error("Не найдена вещь по ID: {}", itemId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID:" + itemId);
         }
 
-        Item existingItem = itemOpt.get();
-        ItemResponse response = toItemResponse(existingItem);
+        Item foundItem = itemOpt.get();
+        User owner = foundItem.getOwner();
+        Long ownerId = owner.getId();
+
+        boolean userIsOwner = ownerId.equals(userId);
+        if (userIsOwner) {
+            ItemResponse foundItemForOwner = toItemResponseForOwner(foundItem);
+            return foundItemForOwner;
+        }
+
+        ItemResponse response = toItemResponse(foundItem);
 
         return response;
     }
@@ -128,12 +144,12 @@ public class ItemService {
         }
 
         MyPageRequest pageRequest = new MyPageRequest(from, size);
-        Page<Item> page = itemRepository.findAllByOwnerId(pageRequest, userId);
+        Page<Item> page = itemRepository.findAllByOwnerIdOrderByIdAsc(pageRequest, userId);
         List<Item> itemsFromUser = page.getContent();
 
         List<ItemResponse> itemsDtoFromUser = new ArrayList<>();
         for (Item item : itemsFromUser) {
-            ItemResponse itemResponse = toItemResponse(item);
+            ItemResponse itemResponse = toItemResponseForOwner(item);
             itemsDtoFromUser.add(itemResponse);
         }
 
@@ -163,7 +179,7 @@ public class ItemService {
         return suitableItemsDto;
     }
 
-    public CommentResponse addComment(Long authorId, Long itemId, CommentRequest commentRequest) throws ResponseStatusException {
+    public CommentResponse addComment(Long authorId, Long itemId, String textComment) throws ResponseStatusException {
 
         boolean checkUserRental = checkUserRentalHistory(authorId, itemId);
         if (!checkUserRental) {
@@ -172,7 +188,7 @@ public class ItemService {
                     "Пользователь по ID: " + authorId + " не имеет право добавить комментарий вещи по ID: " + itemId + ", так как не брал и не завершил аренду этого предмета");
         }
 
-        Comment comment = toComment(authorId, itemId, commentRequest);
+        Comment comment = toComment(authorId, itemId, textComment);
         comment.setCreated(LocalDateTime.now());
 
         Comment savedComment = commentRepository.save(comment);
@@ -273,10 +289,68 @@ public class ItemService {
         return response;
     }
 
-    private Comment toComment(Long authorId, Long itemId, CommentRequest commentRequest) {
+    private ItemResponse toItemResponseForOwner(Item item) {
+
+        Long id = item.getId();
+        String name = item.getName();
+        String description = item.getDescription();
+        Optional<Booking> lastBooking = bookingRepository.findLastBookingByItemId(id);
+        Optional<Booking> nextBooking = bookingRepository.findNextBookingByItemId(id);
+        boolean available = item.getAvailable();
+        List<Comment> comments = item.getComments();
+        ItemRequest request = item.getRequest();
+        Long requestId;
+
+        BookingRes lastBookingRes = toBookingRes(lastBooking);
+        BookingRes nextBookingRes = toBookingRes(nextBooking);
+
+        if (Objects.nonNull(request)) {
+            requestId = request.getId();
+        } else {
+            requestId = null;
+        }
+
+        List<CommentResponse> commentResponseList = new ArrayList<>();
+        for (Comment comment : comments) {
+            CommentResponse commentResponse = toCommentResponse(comment);
+
+            commentResponseList.add(commentResponse);
+        }
+
+        ItemResponse response = new ItemResponse();
+        response.setId(id);
+        response.setName(name);
+        response.setDescription(description);
+        response.setLastBooking(lastBookingRes);
+        response.setNextBooking(nextBookingRes);
+        response.setAvailable(available);
+        response.setRequestId(requestId);
+        response.setComments(commentResponseList);
+
+        return response;
+    }
+
+    private BookingRes toBookingRes(Optional<Booking> bookingOpt) {
+        if (bookingOpt.isEmpty()){
+            return null;
+        }
+
+        Booking booking = bookingOpt.get();
+
+        User booker = booking.getBooker();
+        Long bookerId = booker.getId();
+        Long id = booking.getId();
+
+        BookingRes bookingRes = new BookingRes();
+        bookingRes.setId(id);
+        bookingRes.setBookerId(bookerId);
+
+        return bookingRes;
+    }
+
+    private Comment toComment(Long authorId, Long itemId, String textComment) {
         Item item = getItemById(itemId);
         User author = userService.getUserById(authorId);
-        String textComment = commentRequest.getText();
 
         Comment comment = new Comment();
         comment.setItem(item);
