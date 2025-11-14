@@ -1,12 +1,15 @@
 package ru.practicum.shareit.user.controller;
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.model.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -23,9 +26,17 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto saveUser(@RequestBody @Valid UserDto userDto) {
-        log.info("Сохранение пользователя {}", userDto);
-        return userService.addUser(userDto);
+    public ResponseEntity<?> saveUser(@RequestBody @Valid UserDto userDto) {
+        try {
+            log.info("Сохранение пользователя {}", userDto);
+            return ResponseEntity.ok(userService.addUser(userDto));
+        }catch (ConstraintViolationException e){
+            HashMap<String, String> error = new HashMap<>();
+            String errorMessage = e.getMessage();
+            error.put("error", errorMessage);
+
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
     @PatchMapping("/{userId}")

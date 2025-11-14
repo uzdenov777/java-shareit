@@ -10,9 +10,11 @@ import java.util.List;
 @Data
 public class ItemRequestDto {
 
+    private Long id;
+
     private String description;
 
-    private LocalDateTime creationDate;
+    private LocalDateTime created;
 
-    private List<ItemDto> responseItems = new ArrayList<>();
+    private List<ItemDto> items = new ArrayList<>();
 }

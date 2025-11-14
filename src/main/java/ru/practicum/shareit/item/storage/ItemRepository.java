@@ -9,7 +9,7 @@ import ru.practicum.shareit.item.model.Item;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    Page<Item> findAllByOwnerId(PageRequest pageRequest, Long userId);
+    Page<Item> findAllByOwnerIdOrderByIdAsc(PageRequest pageRequest, Long userId);
 
     @Query("SELECT i " +
             "FROM Item i " +
