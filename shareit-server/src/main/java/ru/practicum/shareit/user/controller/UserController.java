@@ -30,7 +30,7 @@ public class UserController {
         try {
             log.info("Сохранение пользователя {}", userDto);
             return ResponseEntity.ok(userService.addUser(userDto));
-        }catch (ConstraintViolationException e){
+        } catch (ConstraintViolationException e) {
             HashMap<String, String> error = new HashMap<>();
             String errorMessage = e.getMessage();
             error.put("error", errorMessage);

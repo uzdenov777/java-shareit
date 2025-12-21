@@ -36,21 +36,21 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public ResponseEntity<Object> getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId) {
-        return itemClient.getItemResponseByIdFromUser(userId ,itemId);
+        return itemClient.getItemResponseByIdFromUser(userId, itemId);
     }
 
     @GetMapping
     public ResponseEntity<Object> getAllItemsFromUser(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                  @RequestParam(name = "from", defaultValue = "0") int from,
-                                                  @RequestParam(name = "size", defaultValue = "10") int size) {
+                                                      @RequestParam(name = "from", defaultValue = "0") int from,
+                                                      @RequestParam(name = "size", defaultValue = "10") int size) {
         return itemClient.getAllItemsFromUser(from, size, userId);
     }
 
     @GetMapping("/search")
     public ResponseEntity<Object> searchItem(@RequestParam(defaultValue = "") String text,
-                                         @RequestHeader("X-Sharer-User-Id") Long userId,
-                                         @RequestParam(name = "from", defaultValue = "0") int from,
-                                         @RequestParam(name = "size", defaultValue = "10") int size) {
+                                             @RequestHeader("X-Sharer-User-Id") Long userId,
+                                             @RequestParam(name = "from", defaultValue = "0") int from,
+                                             @RequestParam(name = "size", defaultValue = "10") int size) {
         return itemClient.itemSearch(text, userId, from, size);
     }
 

@@ -3,16 +3,13 @@ package ru.practicum.shareit.user;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.model.dto.UserDto;
 
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * TODO Sprint add-controllers.
@@ -34,7 +31,7 @@ public class UserController {
         try {
             log.info("Сохранение пользователя {}", userDto);
             return userClient.addUser(userDto);
-        }catch (ConstraintViolationException e){
+        } catch (ConstraintViolationException e) {
             HashMap<String, String> error = new HashMap<>();
             String errorMessage = e.getMessage();
             error.put("error", errorMessage);

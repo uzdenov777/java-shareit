@@ -218,7 +218,7 @@ public class BookingService {
         boolean isEndAfterStart = end.isAfter(start);
         boolean isAvailableItem = bookingItem.getAvailable();
 
-        if (isEqualsOwnerAndBooker){
+        if (isEqualsOwnerAndBooker) {
             log.error("Владелец по ID: {} не может сам у себя забронировать вещь по ID: {}", ownerId, bookingItem.getId());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Владелец по ID: " + ownerId + "не может сам у себя забронировать вещь по ID: " + bookingItem.getId());

@@ -55,7 +55,7 @@ public class UserClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getAllUsers() {
-       ResponseEntity<Object> res = get("");
+        ResponseEntity<Object> res = get("");
 
         return ResponseEntity.status(res.getStatusCode())
                 .body(res.getBody());

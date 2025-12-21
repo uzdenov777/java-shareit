@@ -334,7 +334,7 @@ public class ItemService {
     }
 
     private BookingRes toBookingRes(Optional<Booking> bookingOpt) {
-        if (bookingOpt.isEmpty()){
+        if (bookingOpt.isEmpty()) {
             return null;
         }
 

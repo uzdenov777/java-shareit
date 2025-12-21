@@ -23,7 +23,7 @@ BookingResponse {
     private ItemRes item;
 
     @Data
-     public static class ItemRes {
+    public static class ItemRes {
 
         private Long id;
 

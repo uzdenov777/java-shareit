@@ -40,7 +40,7 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public ItemResponse getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId) {
-        ItemResponse res = itemService.getItemResponseByIdFromUser(userId ,itemId);
+        ItemResponse res = itemService.getItemResponseByIdFromUser(userId, itemId);
         System.out.println(res);
         return res;
     }
