@@ -43,7 +43,7 @@ services:
     depends_on:
       - server
     environment:
-      - SHAREIT_SERVER_URL=http://server:9091
+      - SHAREIT_SERVER_URL=http://server:9090
       - TZ=Europe/Moscow
     volumes:
       - /etc/localtime:/etc/localtime:ro
