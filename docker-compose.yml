@@ -47,7 +47,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - server
+      server:
+        condition: service_healthy
     environment:
       - SHAREIT_SERVER_URL=http://server:9090
       - TZ=Europe/Moscow
