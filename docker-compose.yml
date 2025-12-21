@@ -35,7 +35,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
   gateway:
-    build: ./shareit-gateway
+    build: gateway
     image: shareit-gateway
     container_name: shareit-gateway
     ports:
