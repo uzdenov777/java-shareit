@@ -19,7 +19,7 @@ services:
       interval: 5s
       retries: 10
   server:
-    build: ./shareit-server
+    build: ./server
     image: shareit-server
     container_name: shareit-server
     ports:
