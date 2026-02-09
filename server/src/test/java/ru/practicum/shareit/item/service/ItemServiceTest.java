@@ -688,7 +688,7 @@ class ItemServiceTest {
         when(itemRepository.existsById(itemId)).thenReturn(true);
 
         //тут сделали что пользователь брал в аренду этот предмет
-        when(bookingRepository.findPastByBookerIdAndItemId(anyLong(), anyLong())).thenReturn(List.of(new Booking()));
+        when(bookingRepository.findPastByBookerIdAndItemId(anyLong(), anyLong())).thenReturn(true);
 
         when(itemRepository.findById(itemId))
                 .thenAnswer(i -> {
@@ -818,7 +818,7 @@ class ItemServiceTest {
 
         when(userService.existsUser(authorId)).thenReturn(true);
         when(itemRepository.existsById(itemId)).thenReturn(true);
-        when(bookingRepository.findPastByBookerIdAndItemId(authorId, itemId)).thenReturn(List.of());// не нашли бронирования этой вещи пользователем
+        when(bookingRepository.findPastByBookerIdAndItemId(authorId, itemId)).thenReturn(false);// не нашли бронирования этой вещи пользователем
 
         //when
         ResponseStatusException resException = assertThrows(ResponseStatusException.class, () -> itemService.addComment(authorId, itemId, commentText));

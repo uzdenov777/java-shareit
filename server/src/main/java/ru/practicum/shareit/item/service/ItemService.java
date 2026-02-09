@@ -223,12 +223,12 @@ public class ItemService {
     }
 
     private boolean checkUserRentalHistory(Long authorId, Long itemId) {
-        List<Booking> bookings = bookingRepository.findPastByBookerIdAndItemId(authorId, itemId);
+        boolean isRental = bookingRepository.findPastByBookerIdAndItemId(authorId, itemId);
 
-        if (bookings.isEmpty()) {
-            return false;
-        } else {
+        if (isRental) {
             return true;
+        } else {
+            return false;
         }
     }
 

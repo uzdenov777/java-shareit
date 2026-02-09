@@ -29,13 +29,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "ORDER BY b.id DESC")
     Page<Booking> findPastByBookerId(MyPageRequest pageRequest, @Param("id") Long bookerId);
 
-    @Query("SELECT b " +
+    @Query("SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END " +
             "FROM Booking b " +
             "WHERE b.end < CURRENT_TIMESTAMP " +
             "AND b.status = 'APPROVED' " +
             "AND b.booker.id = :id " +
             "AND b.item.id = :itemId")
-    List<Booking> findPastByBookerIdAndItemId(@Param("id") Long bookerId, @Param("itemId") Long itemId);
+    Boolean findPastByBookerIdAndItemId(@Param("id") Long bookerId, @Param("itemId") Long itemId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
