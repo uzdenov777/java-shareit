@@ -51,7 +51,7 @@ public class BookingService {
         return bookingResponse;
     }
 
-    public BookingResponse confirmingOrRejectingBookingRequest(Long userId, Long bookingId, Boolean solution) {
+    public BookingResponse confirmingOrRejectingBookingRequest(Long userId, Long bookingId, Boolean approved) throws ResponseStatusException {
         Booking booking = getBooking(bookingId);
         BookingStatus status = booking.getStatus();
 
@@ -66,11 +66,11 @@ public class BookingService {
         }
 
         if (!BookingStatus.WAITING.equals(status)) {
-            log.error("Владелец по iD: {} не может поменять статус бронирования вещи после принятия решения.", userId);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Владелец по iD: " + userId + "не может поменять статус бронирования вещи после принятия решения.");
+            log.error("Владелец по ID: {} не может поменять статус бронирования вещи после принятия решения.", userId);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Владелец по ID: " + userId + " не может поменять статус бронирования вещи после принятия решения.");
         }
 
-        if (solution) {
+        if (approved) {
             booking.setStatus(BookingStatus.APPROVED);
         } else {
             booking.setStatus(BookingStatus.REJECTED);
@@ -104,12 +104,130 @@ public class BookingService {
         return bookingResponse;
     }
 
+    public List<BookingResponse> getListAllBookingsForCurrentUser(Long userId, BookingStateFilter bookingStateFilter, int from, int size) throws ResponseStatusException {
+        boolean isExistBooker = userService.existsUser(userId);
+
+        if (!isExistBooker) {
+            log.error("Не найден пользователь пользователь-арендатор по ID: {}, для возврата списка с фильтром {}", userId, bookingStateFilter);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Не найден пользователь пользователь-арендатор по ID: " + userId + ", для возврата списка с фильтром " + bookingStateFilter);
+        }
+
+        MyPageRequest pageRequest = new MyPageRequest(from, size);
+        Page<Booking> page;
+
+        switch (bookingStateFilter) {
+            case ALL:
+                page = bookingRepository.findAllByBookerIdOrderByIdDesc(pageRequest, userId);
+                break;
+            case CURRENT:
+                page = bookingRepository.findCurrentByBookerId(pageRequest, userId);
+                break;
+            case PAST:
+                page = bookingRepository.findPastByBookerId(pageRequest, userId);
+                break;
+            case FUTURE:
+                page = bookingRepository.findFutureByBookerId(pageRequest, userId);
+                break;
+            case WAITING:
+                page = bookingRepository.findWaitingByBookerId(pageRequest, userId);
+                break;
+            case REJECTED:
+                page = bookingRepository.findRejectedByBookerId(pageRequest, userId);
+                break;
+            default:
+                log.error("Не существует фильтра {}, пользователь-арендатор по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Не существует фильтра " + bookingStateFilter + ", пользователь-арендатор по ID: " + userId + " запросил бронирования по фильтру");
+        }
+
+        List<Booking> listBookings = page.getContent();
+
+        List<BookingResponse> listBookingResponse = new ArrayList<>();
+
+        for (Booking booking : listBookings) {
+            BookingResponse response = toBookingResponse(booking);
+            listBookingResponse.add(response);
+        }
+
+        return listBookingResponse;
+    }
+
+    public List<BookingResponse> getListAllBookingsForCurrentOwner(Long userId, BookingStateFilter bookingStateFilter, int from, int size) throws ResponseStatusException{
+        boolean isExistOwner = userService.existsUser(userId);
+
+        if (!isExistOwner) {
+            log.error("Не найден пользователь пользователь-хозяин по ID: {}, для возврата списка с фильтром {}", userId, bookingStateFilter);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Не найден пользователь пользователь-хозяин по ID: " + userId + ", для возврата списка с фильтром " + bookingStateFilter);
+        }
+
+        MyPageRequest pageRequest = new MyPageRequest(from, size);
+        Page<Booking> page;
+
+        switch (bookingStateFilter) {
+            case ALL:
+                page = bookingRepository.findAllByOwnerId(pageRequest, userId);
+                break;
+            case CURRENT:
+                page = bookingRepository.findCurrentByOwnerId(pageRequest, userId);
+                break;
+            case PAST:
+                page = bookingRepository.findPastByOwnerId(pageRequest, userId);
+                break;
+            case FUTURE:
+                page = bookingRepository.findFutureByOwnerId(pageRequest, userId);
+                break;
+            case WAITING:
+                page = bookingRepository.findWaitingByOwnerId(pageRequest, userId);
+                break;
+            case REJECTED:
+                page = bookingRepository.findRejectedByOwnerId(pageRequest, userId);
+                break;
+            default:
+                log.error("Не существует фильтра {}, хозяина по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Не существует фильтра " + bookingStateFilter + ", хозяина по ID: " + userId + " запросил бронирования по фильтру");
+        }
+
+        List<Booking> listBookings = page.getContent();
+
+        List<BookingResponse> listBookingResponse = new ArrayList<>();
+
+        for (Booking booking : listBookings) {
+            BookingResponse response = toBookingResponse(booking);
+            listBookingResponse.add(response);
+        }
+
+        return listBookingResponse;
+    }
+
+    public Booking toBooking(Long bookerId, BookingRequest bookingRequest) {
+
+        Long itemId = bookingRequest.getItemId();
+
+        Item item = itemService.getItemById(itemId);
+        User user = userService.getUserById(bookerId);
+        LocalDateTime start = bookingRequest.getStart();
+        LocalDateTime end = bookingRequest.getEnd();
+        BookingStatus status = BookingStatus.WAITING;
+
+        Booking bookingEntity = new Booking();
+        bookingEntity.setItem(item);
+        bookingEntity.setBooker(user);
+        bookingEntity.setStart(start);
+        bookingEntity.setEnd(end);
+        bookingEntity.setStatus(status);
+
+        return bookingEntity;
+    }
+
     private Booking getBooking(Long bookingId) throws ResponseStatusException {
         Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
 
         if (bookingOpt.isEmpty()) {
             log.error("При запросе на возвращение бронирование не найдено по ID: {} для изменения статуса", bookingId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "При запросе на возвращение бронирование не найдено по ID: " + bookingId + "для изменения статуса");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "При запросе на возвращение бронирование не найдено по ID: " + bookingId + " для изменения статуса");
         }
 
         Booking booking = bookingOpt.get();
@@ -129,26 +247,6 @@ public class BookingService {
         boolean ownerOrBooker = (ownerId.equals(userId)) || (bookerId.equals(userId));
 
         return ownerOrBooker;
-    }
-
-    private Booking toBooking(Long bookerId, BookingRequest bookingRequest) {
-
-        Long itemId = bookingRequest.getItemId();
-
-        Item item = itemService.getItemById(itemId);
-        User user = userService.getUserById(bookerId);
-        LocalDateTime start = bookingRequest.getStart();
-        LocalDateTime end = bookingRequest.getEnd();
-        BookingStatus status = BookingStatus.WAITING;
-
-        Booking bookingEntity = new Booking();
-        bookingEntity.setItem(item);
-        bookingEntity.setBooker(user);
-        bookingEntity.setStart(start);
-        bookingEntity.setEnd(end);
-        bookingEntity.setStatus(status);
-
-        return bookingEntity;
     }
 
     private BookingResponse toBookingResponse(Booking booking) {
@@ -221,7 +319,7 @@ public class BookingService {
         if (isEqualsOwnerAndBooker) {
             log.error("Владелец по ID: {} не может сам у себя забронировать вещь по ID: {}", ownerId, bookingItem.getId());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Владелец по ID: " + ownerId + "не может сам у себя забронировать вещь по ID: " + bookingItem.getId());
+                    "Владелец по ID: " + ownerId + " не может сам у себя забронировать вещь по ID: " + bookingItem.getId());
         }
 
         if (!isEndAfterNow) {
@@ -252,105 +350,5 @@ public class BookingService {
             log.error("Недоступен сейчас для бронирования предмет по ID: {}", itemId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Недоступен сейчас для бронирования предмет по ID: " + itemId);
         }
-    }
-
-    public List<BookingResponse> getListAllBookingsForCurrentUser(Long userId, BookingStateFilter bookingStateFilter, int from, int size) {
-        boolean isExistBooker = userService.existsUser(userId);
-
-        if (!isExistBooker) {
-            log.error("Не найден пользователь пользователь-арендатор по ID: {}, для возврата списка с фильтром {}", userId, bookingStateFilter);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Не найден пользователь пользователь-арендатор по ID: " + userId + ", для возврата списка с фильтром " + bookingStateFilter);
-        }
-
-        MyPageRequest pageRequest = new MyPageRequest(from, size);
-        Page<Booking> page;
-
-        switch (bookingStateFilter) {
-            case ALL:
-                page = bookingRepository.findAllByBookerIdOrderByIdDesc(pageRequest, userId);
-                break;
-            case CURRENT:
-                page = bookingRepository.findCurrentByBookerId(pageRequest, userId);
-                break;
-            case PAST:
-                page = bookingRepository.findPastByBookerId(pageRequest, userId);
-                break;
-            case FUTURE:
-                page = bookingRepository.findFutureByBookerId(pageRequest, userId);
-                break;
-            case WAITING:
-                page = bookingRepository.findWaitingByBookerId(pageRequest, userId);
-                break;
-            case REJECTED:
-                page = bookingRepository.findRejectedByBookerId(pageRequest, userId);
-                break;
-            default:
-                log.error("Не существует фильтра {}, пользователь-арендатор по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Не существует фильтра " + bookingStateFilter + ", пользователь-арендатор по ID: " + userId + " запросил бронирования по фильтру");
-        }
-
-        List<Booking> listBookings = page.getContent();
-        List<BookingResponse> listBookingResponse = new ArrayList<>();
-        for (Booking booking : listBookings) {
-            BookingResponse response = toBookingResponse(booking);
-            listBookingResponse.add(response);
-        }
-
-        return listBookingResponse;
-    }
-
-    public List<BookingResponse> getListAllBookingsForCurrentOwner(Long userId, BookingStateFilter bookingStateFilter, int from, int size) {
-        boolean isExistOwner = userService.existsUser(userId);
-
-        if (!isExistOwner) {
-            log.error("Не найден пользователь пользователь-хозяин по ID: {}, для возврата списка с фильтром {}", userId, bookingStateFilter);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Не найден пользователь пользователь-хозяин по ID: " + userId + ", для возврата списка с фильтром " + bookingStateFilter);
-        }
-
-        MyPageRequest pageRequest = new MyPageRequest(from, size);
-        Page<Booking> page;
-
-        switch (bookingStateFilter) {
-            case ALL:
-                page = bookingRepository.findAllByOwnerId(pageRequest, userId);
-                break;
-            case CURRENT:
-                page = bookingRepository.findCurrentByOwnerId(pageRequest, userId);
-                break;
-            case PAST:
-                page = bookingRepository.findPastByOwnerId(pageRequest, userId);
-                break;
-            case FUTURE:
-                page = bookingRepository.findFutureByOwnerId(pageRequest, userId);
-                break;
-            case WAITING:
-                page = bookingRepository.findWaitingByOwnerId(pageRequest, userId);
-                break;
-            case REJECTED:
-                page = bookingRepository.findRejectedByOwnerId(pageRequest, userId);
-                break;
-            default:
-                log.error("Не существует фильтра {}, хозяина по ID: {} запросил бронирования по фильтру", bookingStateFilter, userId);
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Не существует фильтра " + bookingStateFilter + ", хозяина по ID: " + userId + " запросил бронирования по фильтру");
-        }
-
-        List<Booking> listBookings = page.getContent();
-        List<BookingResponse> listBookingResponse = new ArrayList<>();
-        for (Booking booking : listBookings) {
-            BookingResponse response = toBookingResponse(booking);
-            listBookingResponse.add(response);
-        }
-
-        return listBookingResponse;
-    }
-
-    public List<Booking> getBookingPastByBookerIdAndItemId(Long bookerId, Long itemId) {
-        List<Booking> listBookings = bookingRepository.findPastByBookerIdAndItemId(bookerId, itemId);
-
-        return listBookings;
     }
 }

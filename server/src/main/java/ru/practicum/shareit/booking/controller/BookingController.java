@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -31,27 +32,27 @@ public class BookingController {
     }
 
     @PostMapping
-    public BookingResponse addBooking(@RequestHeader("X-Sharer-User-Id") Long bookerId, @RequestBody @Valid BookingRequest booking) {
+    public BookingResponse addBooking(@RequestHeader("X-Sharer-User-Id") @NotNull Long bookerId, @RequestBody @Valid BookingRequest booking) {
         log.info("Запрос на добавление нового бронирования {}, пользователем по ID: {}", booking, bookerId);
         return bookingService.add(bookerId, booking);
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingResponse confirmingOrRejectingBookingRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                               @PathVariable("bookingId") Long bookingId,
+    public BookingResponse confirmingOrRejectingBookingRequest(@RequestHeader("X-Sharer-User-Id") @NotNull Long userId,
+                                                               @PathVariable("bookingId") @NotNull Long bookingId,
                                                                @RequestParam @NotNull Boolean approved) {
         log.info("Запрос на подтверждение или отклонение запроса на бронирование по ID: {}, пользователем по ID: {}, решение: {}", bookingId, userId, approved);
         return bookingService.confirmingOrRejectingBookingRequest(userId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")
-    public BookingResponse getBookingById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable("bookingId") Long bookingId) throws ResponseStatusException {
+    public BookingResponse getBookingById(@RequestHeader("X-Sharer-User-Id") @NotNull Long userId, @PathVariable("bookingId") Long bookingId) throws ResponseStatusException {
         log.info("Запрос на возвращение бронирования по ID: {}, пользователем по ID: {}", bookingId, userId);
         return bookingService.getBookingById(userId, bookingId);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getListAllBookingsForCurrentBooker(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> getListAllBookingsForCurrentBooker(@RequestHeader("X-Sharer-User-Id") @NotNull Long userId,
                                                                      @RequestParam(name = "state", defaultValue = "all") String state,
                                                                      @RequestParam(name = "from", defaultValue = "0") int from,
                                                                      @RequestParam(name = "size", defaultValue = "10") int size) {

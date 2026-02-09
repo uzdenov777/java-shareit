@@ -22,8 +22,10 @@ public class UserService {
         this.userRepository = userStorage;
     }
 
-    public UserDto addUser(UserDto userDto) {
+    public UserDto addUser(UserDto userDto) throws ResponseStatusException {
         try {
+            log.info("Сохранение пользователя {}", userDto);
+
             User newUser = toUser(userDto);
 
             User save = userRepository.save(newUser);
@@ -39,6 +41,8 @@ public class UserService {
     }
 
     public User updateUser(Long userId, UserDto userDto) throws ResponseStatusException {
+        log.info("Updating user ID:{}", userId);
+
         Optional<User> userOpt = userRepository.findById(userId);
 
         if (userOpt.isEmpty()) {
@@ -80,6 +84,7 @@ public class UserService {
     }
 
     public User removeUser(Long userId) throws ResponseStatusException {
+        log.info("Deleting user {}", userId);
 
         Optional<User> userOpt = userRepository.findById(userId);
 
@@ -95,6 +100,7 @@ public class UserService {
     }
 
     public User getUserById(Long userId) throws ResponseStatusException {
+        log.info("Getting user {}", userId);
 
         Optional<User> userOpt = userRepository.findById(userId);
 
@@ -108,6 +114,8 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
+        log.info("Getting All users");
+
         return userRepository.findAll();
     }
 
@@ -115,8 +123,7 @@ public class UserService {
         return userRepository.existsById(userId);
     }
 
-    private User toUser(UserDto userDto) {
-
+    public User toUser(UserDto userDto) {
         String name = userDto.getName();
         String email = userDto.getEmail();
 
@@ -128,7 +135,7 @@ public class UserService {
         return user;
     }
 
-    private UserDto toUserDto(User save) {
+    public UserDto toUserDto(User save) {
         Long id = save.getId();
         String name = save.getName();
         String email = save.getEmail();

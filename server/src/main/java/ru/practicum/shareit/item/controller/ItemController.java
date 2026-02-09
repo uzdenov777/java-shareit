@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.controller;
 
 import jakarta.validation.Valid;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,19 +30,20 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemResponse add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid ItemDto newItemDto) {
+    public ItemResponse add(@RequestHeader("X-Sharer-User-Id") @NonNull Long ownerId, @RequestBody @Valid @NonNull ItemDto newItemDto) {
         return itemService.add(ownerId, newItemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemResponse updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody ItemDto itemDto) {
+    public ItemResponse updateItem(@RequestHeader("X-Sharer-User-Id") @NonNull Long userId, @PathVariable @NonNull Long itemId, @RequestBody @NonNull ItemDto itemDto) {
         return itemService.updateItem(userId, itemId, itemDto);
     }
 
     @GetMapping("/{itemId}")
     public ItemResponse getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId) {
+        log.info("Возращение вещи по ID: {}", itemId);
+
         ItemResponse res = itemService.getItemResponseByIdFromUser(userId, itemId);
-        System.out.println(res);
         return res;
     }
 
@@ -49,7 +51,7 @@ public class ItemController {
     public List<ItemResponse> getAllItemsFromUser(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                   @RequestParam(name = "from", defaultValue = "0") int from,
                                                   @RequestParam(name = "size", defaultValue = "10") int size) {
-        return itemService.getAllItemsFromUser(from, size, userId);
+        return itemService.getAllItemsFromUser(userId, from, size);
     }
 
     @GetMapping("/search")

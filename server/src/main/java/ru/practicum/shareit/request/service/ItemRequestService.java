@@ -36,6 +36,13 @@ public class ItemRequestService {
     }
 
     public ItemRequest create(Long requestorId, ItemRequest itemRequest) {
+        log.info("Пользователь по ID: {} создает на вещь запрос: {}", requestorId, itemRequest);
+
+        boolean isExistUser = userService.existsUser(requestorId);
+        if (!isExistUser) {
+            log.info("Не найден пользователь по ID: {} для создания запроса на вещь", requestorId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + requestorId + " для создания запроса на вещь");
+        }
 
         User requestor = userService.getUserById(requestorId);
         LocalDateTime creationDate = LocalDateTime.now();
@@ -61,27 +68,6 @@ public class ItemRequestService {
         return itemRequest;
     }
 
-    public List<ItemRequestDto> getByRequestor(Long bookerId) {
-
-        User requestor = userService.getUserById(bookerId);
-
-        List<ItemRequest> userRequests = itemRequestRepository.findByRequestor(requestor);
-        List<ItemRequestDto> userRequestsDto = toItemRequestDtoList(userRequests);
-
-        return userRequestsDto;
-    }
-
-    public List<ItemRequestDto> getAll(int from, int size, Long requestorId) {
-        User requestor = userService.getUserById(requestorId);
-
-        Sort sort = Sort.by(Sort.Direction.DESC, "created");
-        MyPageRequest pageRequest = new MyPageRequest(from, size, sort);
-        Page<ItemRequest> page = itemRequestRepository.findByRequestorNot(pageRequest, requestor);
-        List<ItemRequest> itemRequests = page.getContent();
-        List<ItemRequestDto> itemRequestsDto = toItemRequestDtoList(itemRequests);
-        return itemRequestsDto;
-    }
-
     public ItemRequestDto getItemRequestDtoById(Long requestId, Long userId) throws ResponseStatusException {
         boolean isExistsUser = userService.existsUser(userId);
         if (!isExistsUser) {
@@ -98,6 +84,43 @@ public class ItemRequestService {
         ItemRequest itemRequest = itemRequestOptional.get();
         ItemRequestDto itemRequestDto = toItemRequestDto(itemRequest);
         return itemRequestDto;
+    }
+
+    public List<ItemRequestDto> getAllRequestByRequestorId(Long requestorId) throws ResponseStatusException {
+
+        boolean isExistRequestor = userService.existsUser(requestorId);
+        if (!isExistRequestor) {
+            log.info("Не найден пользователь по ID: {} при возвращении его запросов на вещи", requestorId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + requestorId + " при возвращении его запросов на вещи");
+        }
+
+        User requestor = userService.getUserById(requestorId);
+
+        List<ItemRequest> userRequests = itemRequestRepository.findByRequestor(requestor);
+
+        List<ItemRequestDto> userRequestsDto = toItemRequestDtoList(userRequests);
+        return userRequestsDto;
+    }
+
+    public List<ItemRequestDto> getAllItemRequest(int from, int size, Long requestorId) {
+
+        boolean isExistRequestor = userService.existsUser(requestorId);
+        if (!isExistRequestor) {
+            log.info("Не найден пользователь по ID: {} при возвращении всех запросов кроме его собственных запросов", requestorId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + requestorId + " при возвращении всех запросов кроме его собственных запросов");
+        }
+
+        User requestor = userService.getUserById(requestorId);
+
+        Sort sort = Sort.by(Sort.Direction.DESC, "created");
+        MyPageRequest pageRequest = new MyPageRequest(from, size, sort);
+
+        Page<ItemRequest> page = itemRequestRepository.findByRequestorNot(requestor, pageRequest);
+
+        List<ItemRequest> itemRequests = page.getContent();
+
+        List<ItemRequestDto> itemRequestsDto = toItemRequestDtoList(itemRequests);
+        return itemRequestsDto;
     }
 
     private ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {

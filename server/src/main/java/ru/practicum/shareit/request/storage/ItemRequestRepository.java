@@ -12,6 +12,5 @@ import java.util.List;
 public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> {
     List<ItemRequest> findByRequestor(User requestor);
 
-    @Query
-    Page<ItemRequest> findByRequestorNot(MyPageRequest pageRequest, User requestor);
+    Page<ItemRequest> findByRequestorNot(User requestor, MyPageRequest pageRequest);
 }

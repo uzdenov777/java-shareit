@@ -48,6 +48,14 @@ public class ItemService {
     }
 
     public ItemResponse add(Long ownerId, ItemDto itemDto) {
+        log.info("Происходит сохранение вещи пользователем по ID: {}, вещь: {}", ownerId, itemDto);
+
+        boolean isExistsUser = userService.existsUser(ownerId);
+        if (!isExistsUser) {
+            log.info("Пользователь по ID: {} не найден для сохранения вещи: {}", ownerId, itemDto);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь по ID: " + ownerId + " не найден для сохранения вещи: " + itemDto);
+        }
+
         Item newItem = toItem(ownerId, itemDto);
 
         Item save = itemRepository.save(newItem);
@@ -57,17 +65,19 @@ public class ItemService {
         return response;
     }
 
-    public ItemResponse updateItem(Long userId, Long itemId, ItemDto itemDto) throws ResponseStatusException {
+    public ItemResponse updateItem(Long ownerId, Long itemId, ItemDto itemDto) throws ResponseStatusException {
+        log.info("Происходит обновление вещи по ID: {}", itemId);
+
         Optional<Item> itemOpt = itemRepository.findById(itemId);
 
         if (itemOpt.isEmpty()) {
             log.info("Вещь для обновления не найдена по ID:{}", itemId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Вещь для обновления не найдена по ID:" + itemId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Вещь для обновления не найдена по ID: " + itemId);
         }
 
         Item existingItem = itemOpt.get();
 
-        checkValidNewVersionItem(userId, existingItem);
+        checkUserRightToUpdateItem(ownerId, existingItem);
 
         String nameDto = itemDto.getName();
         String descriptionDto = itemDto.getDescription();
@@ -96,17 +106,18 @@ public class ItemService {
     }
 
     public ItemResponse getItemResponseByIdFromUser(Long userId, Long itemId) throws ResponseStatusException {
+        log.info("Возращение вещи по ID: {}", itemId);
 
-        boolean exists = userService.existsUser(userId);
-        if (!exists) {
+        boolean isExistUser = userService.existsUser(userId);
+        if (!isExistUser) {
             log.error("Не найден пользователь по ID: {}", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + itemId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + userId);
         }
 
         Optional<Item> itemOpt = itemRepository.findById(itemId);
         if (itemOpt.isEmpty()) {
             log.error("Не найдена вещь по ID: {}", itemId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID:" + itemId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID: " + itemId);
         }
 
         Item foundItem = itemOpt.get();
@@ -135,11 +146,11 @@ public class ItemService {
         return existingItem;
     }
 
-    public List<ItemResponse> getAllItemsFromUser(int from, int size, Long userId) {
+    public List<ItemResponse> getAllItemsFromUser(Long userId, int from, int size) {
         boolean isExistsUser = userService.existsUser(userId);
         if (!isExistsUser) {
             log.info("Владелец вещей по ID:{} не найден в базе данных при возврате всех его вещей", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Владелец вещей по ID:" + userId + " не найден в базе данных при возврате всех его вещей");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Владелец вещей по ID: " + userId + " не найден в базе данных для возврате всех его вещей");
         }
 
         MyPageRequest pageRequest = new MyPageRequest(from, size);
@@ -156,10 +167,7 @@ public class ItemService {
     }
 
     public List<ItemResponse> itemSearch(String text, Long userId, int from, int size) {
-        System.out.println(text);
-        System.out.println(userId);
-        System.out.println(size);
-        System.out.println(from);
+
         boolean isExistsUser = userService.existsUser(userId);
         if (!isExistsUser) {
             log.info("Пользователь по ID:{} не зарегистрирован для поиска вещей по тексту", userId);
@@ -176,13 +184,26 @@ public class ItemService {
 
         List<ItemResponse> suitableItemsDto = new ArrayList<>();
         for (Item item : suitableItems) {
-            suitableItemsDto.add(toItemResponse(item));
+            ItemResponse itemResponse = toItemResponse(item);
+            suitableItemsDto.add(itemResponse);
         }
 
         return suitableItemsDto;
     }
 
     public CommentResponse addComment(Long authorId, Long itemId, String textComment) throws ResponseStatusException {
+
+        boolean isExistsUser = userService.existsUser(authorId);
+        if (!isExistsUser) {
+            log.info("При добавлении комментария вещи по ID: {} не найден пользователь с ID: {}", itemId, authorId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "При добавлении комментария вещи по ID: " + itemId + " не найден пользователь с ID: " + authorId);
+        }
+
+        boolean isExistItem = itemRepository.existsById(itemId);
+        if (!isExistItem) {
+            log.info("Не найдена вещь по ID: {}, была попытка добавить комментарий пользователем по ID: {}", itemId, authorId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID: " + itemId + ", была попытка добавить комментарий пользователем по ID: " +  authorId);
+        }
 
         boolean checkUserRental = checkUserRentalHistory(authorId, itemId);
         if (!checkUserRental) {
@@ -211,11 +232,7 @@ public class ItemService {
         }
     }
 
-    private void checkValidNewVersionItem(Long userId, Item item) throws ResponseStatusException {
-        if (Objects.isNull(userId)) {
-            log.info("При обновлении вещи не может отсутствовать ID владельца");
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "При обновлении пользователя не может отсутствовать ID владельца");
-        }
+    private void checkUserRightToUpdateItem(Long userId, Item item) throws ResponseStatusException {
 
         Long itemId = item.getId();
         User owner = item.getOwner();
@@ -263,7 +280,7 @@ public class ItemService {
         Long id = item.getId();
         String name = item.getName();
         String description = item.getDescription();
-        boolean available = item.getAvailable();
+        Boolean available = item.getAvailable();
         List<Comment> comments = item.getComments();
         ItemRequest request = item.getRequest();
         Long requestId;
@@ -299,7 +316,7 @@ public class ItemService {
         String description = item.getDescription();
         Optional<Booking> lastBooking = bookingRepository.findLastBookingByItemId(id);
         Optional<Booking> nextBooking = bookingRepository.findNextBookingByItemId(id);
-        boolean available = item.getAvailable();
+        Boolean available = item.getAvailable();
         List<Comment> comments = item.getComments();
         ItemRequest request = item.getRequest();
         Long requestId;

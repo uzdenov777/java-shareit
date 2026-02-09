@@ -17,7 +17,7 @@ public class ItemResponse {
 
     private BookingRes nextBooking;
 
-    private boolean available;
+    private Boolean available;
 
     private Long requestId;
 

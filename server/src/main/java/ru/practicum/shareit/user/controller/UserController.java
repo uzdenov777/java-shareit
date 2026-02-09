@@ -29,7 +29,8 @@ public class UserController {
     public ResponseEntity<Object> saveUser(@RequestBody @Valid UserDto userDto) {
         try {
             log.info("Сохранение пользователя {}", userDto);
-            return ResponseEntity.ok(userService.addUser(userDto));
+            UserDto userDtoSave = userService.addUser(userDto);
+            return ResponseEntity.ok(userDtoSave);
         } catch (ConstraintViolationException e) {
             HashMap<String, String> error = new HashMap<>();
             String errorMessage = e.getMessage();
