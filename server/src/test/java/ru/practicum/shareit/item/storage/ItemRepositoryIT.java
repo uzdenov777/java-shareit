@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.storage;
 
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,8 @@ import ru.practicum.shareit.util.MyPageRequest;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 class ItemRepositoryIT {
@@ -29,7 +29,6 @@ class ItemRepositoryIT {
 
     private User owner;
 
-    private Long itemId;
     private Long ownerId;
     private MyPageRequest pageRequest;
 
@@ -47,7 +46,6 @@ class ItemRepositoryIT {
         item.setAvailable(true);
         item.setOwner(owner);
         entityManager.persist(item);
-        itemId = item.getId();
 
         pageRequest = new MyPageRequest(0, 10);
     }
@@ -86,7 +84,67 @@ class ItemRepositoryIT {
     }
 
     @Test
-    void findAvailableItemsBySearchText() {
+    void findAvailableItemsBySearchText_whenItemNameFits_thenReturnNotEmptyList() {
+        //given
+        //сделали так, чтобы найти объект по имени и он доступен
+        String searchText = item.getName();
 
+        //when
+        Page<Item> response = itemRepository.findAvailableItemsBySearchText(pageRequest, searchText);
+
+        //then
+        List<Item> items = response.getContent();
+        Item resultItem = items.get(0);
+
+        assertEquals(item, resultItem);
+        assertEquals(1, items.size());
+    }
+
+    @Test
+    void findAvailableItemsBySearchText_whenItemDescriptionFits_thenReturnNotEmptyList() {
+        //given
+        //сделали так, чтобы найти объект по имени и он доступен
+        String searchText = item.getName();
+
+        //when
+        Page<Item> response = itemRepository.findAvailableItemsBySearchText(pageRequest, searchText);
+
+        //then
+        List<Item> items = response.getContent();
+        Item resultItem = items.get(0);
+
+        assertEquals(item, resultItem);
+        assertEquals(1, items.size());
+    }
+
+    @Test
+    void findAvailableItemsBySearchText_whenItemDescriptionAndNameNonFits_thenReturnEmptyList() {
+        //given
+        //имя и описание не подходит, но он доступен
+        String searchText = "дрель";
+
+        //when
+        Page<Item> response = itemRepository.findAvailableItemsBySearchText(pageRequest, searchText);
+
+        //then
+        List<Item> items = response.getContent();
+
+        assertTrue(items.isEmpty());
+    }
+
+    @Test
+    void findAvailableItemsBySearchText_whenItemNonAvailable_thenReturnEmptyList() {
+        //given
+        //имя или описание подходит, но он не доступен
+        String searchText = item.getName();
+        item.setAvailable(false);
+
+        //when
+        Page<Item> response = itemRepository.findAvailableItemsBySearchText(pageRequest, searchText);
+
+        //then
+        List<Item> items = response.getContent();
+
+        assertTrue(items.isEmpty());
     }
 }
