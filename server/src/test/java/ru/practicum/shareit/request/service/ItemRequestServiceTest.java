@@ -222,8 +222,7 @@ class ItemRequestServiceTest {
         Long requestorId = requestor.getId();
 
         when(userService.existsUser(requestorId)).thenReturn(true);
-        when(userService.getUserById(requestorId)).thenReturn(requestor);
-        when(itemRequestRepository.findByRequestor(requestor))
+        when(itemRequestRepository.findByRequestorId(requestorId))
                 .thenAnswer(i ->
                 {
                     itemRequest.setId(1L);
@@ -238,7 +237,7 @@ class ItemRequestServiceTest {
 
         //then
         //ожидаемые значения
-        Long itemRequestIdExpected = requestorId;
+        Long itemRequestIdExpected = 1L;
         String descriptionExpected = "Описание";
 
         //проверка
@@ -251,8 +250,7 @@ class ItemRequestServiceTest {
         assertEquals(1, result.size());
 
         verify(userService).existsUser(requestorId);
-        verify(userService).getUserById(requestorId);
-        verify(itemRequestRepository).findByRequestor(requestor);
+        verify(itemRequestRepository).findByRequestorId(requestorId);
     }
 
     @Test
@@ -276,7 +274,7 @@ class ItemRequestServiceTest {
 
         verify(userService).existsUser(nonExistRequestorId);
         verify(userService, never()).getUserById(anyLong());
-        verify(itemRequestRepository, never()).findByRequestor(any());
+        verify(itemRequestRepository, never()).findByRequestorId(any());
     }
 
     @Test
@@ -287,8 +285,7 @@ class ItemRequestServiceTest {
         Long requestorId = requestor.getId();
 
         when(userService.existsUser(requestorId)).thenReturn(true);
-        when(userService.getUserById(requestorId)).thenReturn(requestor);
-        when(itemRequestRepository.findByRequestorNot(any(), any()))
+        when(itemRequestRepository.findByRequestorIdNot(any(), any()))
                 .thenAnswer(i ->
                 {
                     itemRequest.setId(1L);
@@ -319,8 +316,7 @@ class ItemRequestServiceTest {
         assertEquals(1, result.size());
 
         verify(userService).existsUser(requestorId);
-        verify(userService).getUserById(requestorId);
-        verify(itemRequestRepository).findByRequestorNot(any(), any());
+        verify(itemRequestRepository).findByRequestorIdNot(any(), any());
     }
 
     @Test
@@ -345,6 +341,6 @@ class ItemRequestServiceTest {
         assertEquals(exceptionMessage, resException.getMessage());
         verify(userService).existsUser(notExistsRequestorId);
         verify(userService, never()).getUserById(anyLong());
-        verify(itemRequestRepository, never()).findByRequestorNot(any(), any());
+        verify(itemRequestRepository, never()).findByRequestorIdNot(any(), any());
     }
 }
