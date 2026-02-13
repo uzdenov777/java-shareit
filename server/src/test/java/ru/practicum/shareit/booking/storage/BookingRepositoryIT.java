@@ -15,6 +15,7 @@ import ru.practicum.shareit.util.MyPageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -341,34 +342,291 @@ class BookingRepositoryIT {
     }
 
     @Test
-    void findAllByOwnerId() {
+    void findAllByOwnerId_whenOwnerHasBookings_thenReturnNotEmptyListBookings() {
+        //when
+        Page<Booking> response = bookingRepository.findAllByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        Booking resultBooking = bookings.get(0);
+
+        assertEquals(booking, resultBooking);
+        assertEquals(1, bookings.size());
+    }
+
+
+    @Test
+    void findAllByOwnerId_whenOwnerNotHasBookings_thenReturnEmptyListBookings() {
+        //given
+        entityManager.remove(booking);//удалим бронирование, чтобы получить пустой список
+
+        //when
+        Page<Booking> response = bookingRepository.findAllByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+
+        assertTrue(bookings.isEmpty());
     }
 
     @Test
-    void findCurrentByOwnerId() {
+    void findCurrentByOwnerId_whenCurrentBookingExists_thenReturnBooking() {
+        //given
+        //установили время бронирования на настоящее
+        booking.setStart(LocalDateTime.now());
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+
+        //when
+        Page<Booking> response = bookingRepository.findCurrentByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        Booking resultBooking = bookings.get(0);
+
+        assertEquals(booking, resultBooking);
+        assertEquals(1, bookings.size());
     }
 
     @Test
-    void findPastByOwnerId() {
+    void findCurrentByOwnerId_whenCurrentBookingNotExists_thenReturnEmptyListBookings() {
+        //given
+        //сделали так, чтобы не было текущих бронирований
+        booking.setStart(LocalDateTime.now().plusHours(1));
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+
+        //when
+        Page<Booking> response = bookingRepository.findCurrentByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        assertTrue(bookings.isEmpty());
     }
 
     @Test
-    void findFutureByOwnerId() {
+    void findPastByOwnerId_whenPastBookingExists_thenReturnBooking() {
+        //given
+        //бронирование завершено в прошлом и APPROVED
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setEnd(LocalDateTime.now().minusHours(1));
+        booking.setStatus(BookingStatus.APPROVED);
+
+        //when
+        Page<Booking> response = bookingRepository.findPastByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        Booking resultBooking = bookings.get(0);
+
+        assertEquals(booking, resultBooking);
+        assertEquals(1, bookings.size());
     }
 
     @Test
-    void findWaitingByOwnerId() {
+    void findPastByOwnerId_whenBookingNotPast_thenReturnEmptyListBookings() {
+        //given
+        //бронирование не в прошлом, но APPROVED
+        booking.setStart(LocalDateTime.now().plusHours(1));
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+        booking.setStatus(BookingStatus.APPROVED);
+
+        //when
+        Page<Booking> response = bookingRepository.findPastByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        assertTrue(bookings.isEmpty());
     }
 
     @Test
-    void findRejectedByOwnerId() {
+    void findPastByOwnerId_whenBookingStatusNotApproved_thenReturnEmptyListBookings() {
+        //given
+        //бронирование в прошлом, но не APPROVED
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setEnd(LocalDateTime.now().minusHours(1));
+        booking.setStatus(BookingStatus.REJECTED);
+
+        //when
+        Page<Booking> response = bookingRepository.findPastByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        assertTrue(bookings.isEmpty());
     }
 
     @Test
-    void findLastBookingByItemId() {
+    void findFutureByOwnerId_whenExistBookingInFuture_thenReturnNotEmptyList() {
+        //given
+        //бронирование теперь в будущем
+        booking.setStart(LocalDateTime.now().plusHours(1));
+        booking.setEnd(LocalDateTime.now().plusDays(1));
+
+        //when
+        Page<Booking> response = bookingRepository.findFutureByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        Booking resultBooking = bookings.get(0);
+
+        assertEquals(booking, resultBooking);
+        assertEquals(1, bookings.size());
     }
 
     @Test
-    void findNextBookingByItemId() {
+    void findFutureByOwnerId_whenNotExistBookingInFuture_thenReturnEmptyList() {
+        //given
+        //будущих бронирований нет больше
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setEnd(LocalDateTime.now().minusHours(1));
+
+        //when
+        Page<Booking> response = bookingRepository.findFutureByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        assertTrue(bookings.isEmpty());
+    }
+
+    @Test
+    void findWaitingByOwnerId_whenWaitingBookingsExist_thenReturnNotEmptyList() {
+        //when
+        Page<Booking> response = bookingRepository.findWaitingByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        Booking resultBooking = bookings.get(0);
+
+        assertEquals(booking, resultBooking);
+        assertEquals(1, bookings.size());
+    }
+
+    @Test
+    void findWaitingByOwnerId_whenWaitingBookingsNotExist_thenReturnNotEmptyList() {
+        //given
+        //когда нет ожидающих ответа бронирований
+        booking.setStatus(BookingStatus.REJECTED);
+
+        //when
+        Page<Booking> response = bookingRepository.findWaitingByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        assertTrue(bookings.isEmpty());
+    }
+
+    @Test
+    void findRejectedByOwnerId_whenRejectedBookingsExist_thenReturnNotEmptyList() {
+        //given
+        //когда есть отклоненные бронирования
+        booking.setStatus(BookingStatus.REJECTED);
+
+        //when
+        Page<Booking> response = bookingRepository.findRejectedByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        Booking resultBooking = bookings.get(0);
+
+        assertEquals(booking, resultBooking);
+        assertEquals(1, bookings.size());
+    }
+
+    @Test
+    void findRejectedByOwnerId_whenRejectedBookingsNotExist_thenReturnNotEmptyList() {
+        //given
+        //когда нет отклоненных бронирований
+        booking.setStatus(BookingStatus.APPROVED);
+
+        //when
+        Page<Booking> response = bookingRepository.findRejectedByOwnerId(myPageRequest, ownerId);
+
+        //then
+        List<Booking> bookings = response.getContent();
+        assertTrue(bookings.isEmpty());
+    }
+
+    @Test
+    void findLastBookingByItemId_whenExistLastBooking_thenReturnLastBooking() {
+        //given
+        //сделали бронирование последним для вещи
+        booking.setStart(LocalDateTime.now().minusDays(1));
+        booking.setStatus(BookingStatus.APPROVED);
+
+        //when
+        Optional<Booking> response = bookingRepository.findLastBookingByItemId(itemId);
+
+        //then
+        Booking resultBooking = response.get();
+        assertEquals(booking, resultBooking);
+    }
+
+    @Test
+    void findLastBookingByItemId_whenStartNonPast_thenReturnEmptyOptional() {
+        //given
+        //бронирование не в прошлом, но APPROVED
+        booking.setStart(LocalDateTime.now().plusHours(1));
+        booking.setStatus(BookingStatus.APPROVED);
+
+        //when
+        Optional<Booking> response = bookingRepository.findLastBookingByItemId(itemId);
+
+        //then
+        assertTrue(response.isEmpty());
+    }
+
+    @Test
+    void findLastBookingByItemId_whenStatusNonApproved_thenReturnEmptyOptional() {
+        //given
+        //бронирование в прошлом, но не APPROVED
+        booking.setStart(LocalDateTime.now().minusHours(1));
+        booking.setStatus(BookingStatus.WAITING);
+
+        //when
+        Optional<Booking> response = bookingRepository.findLastBookingByItemId(itemId);
+
+        //then
+        assertTrue(response.isEmpty());
+    }
+
+    @Test
+    void findNextBookingByItemId_whenExistNextBooking_thenReturnEmptyOptional() {
+        //given
+        //бронирование в будущем и APPROVED
+        booking.setStart(LocalDateTime.now().plusHours(1));
+        booking.setStatus(BookingStatus.APPROVED);
+
+        //when
+        Optional<Booking> response = bookingRepository.findNextBookingByItemId(itemId);
+
+        //then
+        Booking resultBooking = response.get();
+        assertEquals(booking, resultBooking);
+    }
+
+    @Test
+    void findNextBookingByItemId_whenStartNonFuture_thenReturnEmptyOptional() {
+        //given
+        //бронирование в не будущем, но APPROVED
+        booking.setStart(LocalDateTime.now().minusHours(1));
+        booking.setStatus(BookingStatus.APPROVED);
+
+        //when
+        Optional<Booking> response = bookingRepository.findNextBookingByItemId(itemId);
+
+        //then
+        assertTrue(response.isEmpty());
+    }
+
+    @Test
+    void findNextBookingByItemId_whenStatusNonApproved_thenReturnEmptyOptional() {
+        //given
+        //бронирование в будущем, но не APPROVED
+        booking.setStart(LocalDateTime.now().plusHours(1));
+        booking.setStatus(BookingStatus.REJECTED);
+
+        //when
+        Optional<Booking> response = bookingRepository.findNextBookingByItemId(itemId);
+
+        //then
+        assertTrue(response.isEmpty());
     }
 }

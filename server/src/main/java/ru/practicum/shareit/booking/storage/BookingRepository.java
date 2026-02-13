@@ -82,7 +82,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "WHERE b.start > CURRENT_TIMESTAMP " +
             "AND b.item.owner.id = :id " +
             "ORDER BY b.id DESC")
-    Page<Booking> findFutureByOwnerId(MyPageRequest pageRequest, @Param("id") Long ownerId);
+     Page<Booking> findFutureByOwnerId(MyPageRequest pageRequest, @Param("id") Long ownerId);
 
     @Query("SELECT b " +
             "FROM Booking b " +
