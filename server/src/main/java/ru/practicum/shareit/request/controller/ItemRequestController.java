@@ -28,7 +28,7 @@ public class ItemRequestController {
 
     @PostMapping
     public ItemRequest create(@RequestHeader("X-Sharer-User-Id") Long requestorId, @RequestBody @Valid ItemRequest itemRequestDto) {
-        log.info("Пользователь по ID: {} создает на вещь запрос: {}", requestorId,  itemRequestDto);
+        log.info("Пользователь по ID: {} создает на вещь запрос: {}", requestorId, itemRequestDto);
         return itemRequestService.create(requestorId, itemRequestDto);
     }
 
@@ -47,8 +47,8 @@ public class ItemRequestController {
     //вернуть все запросы на вещи кроме его собственных
     @GetMapping("/all")
     public List<ItemRequestDto> getAllItemRequest(@RequestParam(name = "from", defaultValue = "0") int from,
-                                       @RequestParam(name = "size", defaultValue = "10") int size,
-                                       @RequestHeader("X-Sharer-User-Id") Long requestorId) {
+                                                  @RequestParam(name = "size", defaultValue = "10") int size,
+                                                  @RequestHeader("X-Sharer-User-Id") Long requestorId) {
         return itemRequestService.getAllItemRequest(from, size, requestorId);
     }
 }

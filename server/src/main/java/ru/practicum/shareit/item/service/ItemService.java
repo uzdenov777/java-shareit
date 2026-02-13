@@ -202,7 +202,7 @@ public class ItemService {
         boolean isExistItem = itemRepository.existsById(itemId);
         if (!isExistItem) {
             log.info("Не найдена вещь по ID: {}, была попытка добавить комментарий пользователем по ID: {}", itemId, authorId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID: " + itemId + ", была попытка добавить комментарий пользователем по ID: " +  authorId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID: " + itemId + ", была попытка добавить комментарий пользователем по ID: " + authorId);
         }
 
         boolean checkUserRental = checkUserRentalHistory(authorId, itemId);

@@ -10,8 +10,7 @@ import ru.practicum.shareit.util.MyPageRequest;
 import java.util.List;
 
 public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> {
+    List<ItemRequest> findByRequestor(User requestor);
 
-    List<ItemRequest> findByRequestorId(Long requestorId);
-
-    Page<ItemRequest> findByRequestorIdNot(Long requestorId, MyPageRequest pageRequest);
+    Page<ItemRequest> findByRequestorNot(User requestor, MyPageRequest pageRequest);
 }

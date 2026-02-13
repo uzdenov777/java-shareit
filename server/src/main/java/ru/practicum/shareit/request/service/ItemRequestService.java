@@ -94,7 +94,9 @@ public class ItemRequestService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + requestorId + " при возвращении его запросов на вещи");
         }
 
-        List<ItemRequest> userRequests = itemRequestRepository.findByRequestorId(requestorId);
+        User requestor = userService.getUserById(requestorId);
+
+        List<ItemRequest> userRequests = itemRequestRepository.findByRequestor(requestor);
 
         List<ItemRequestDto> userRequestsDto = toItemRequestDtoList(userRequests);
         return userRequestsDto;
@@ -108,10 +110,12 @@ public class ItemRequestService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + requestorId + " при возвращении всех запросов кроме его собственных запросов");
         }
 
+        User requestor = userService.getUserById(requestorId);
+
         Sort sort = Sort.by(Sort.Direction.DESC, "created");
         MyPageRequest pageRequest = new MyPageRequest(from, size, sort);
 
-        Page<ItemRequest> page = itemRequestRepository.findByRequestorIdNot(requestorId, pageRequest);
+        Page<ItemRequest> page = itemRequestRepository.findByRequestorNot(requestor, pageRequest);
 
         List<ItemRequest> itemRequests = page.getContent();
 

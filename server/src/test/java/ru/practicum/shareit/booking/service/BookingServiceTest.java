@@ -21,13 +21,13 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
-import ru.practicum.shareit.util.MyPageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -838,7 +838,7 @@ class BookingServiceTest {
 
         //then
         HttpStatus statusExpected = HttpStatus.FORBIDDEN;
-        String exceptionMessageExpected = "403 FORBIDDEN \"Не найден пользователь пользователь-арендатор по ID: " + bookerId + ", для возврата списка с фильтром " + filter +"\"";
+        String exceptionMessageExpected = "403 FORBIDDEN \"Не найден пользователь пользователь-арендатор по ID: " + bookerId + ", для возврата списка с фильтром " + filter + "\"";
 
         assertEquals(statusExpected, resException.getStatusCode());
         assertEquals(exceptionMessageExpected, resException.getMessage());
@@ -1152,7 +1152,7 @@ class BookingServiceTest {
 
         //then
         HttpStatus statusExpected = HttpStatus.FORBIDDEN;
-        String exceptionMessageExpected = "403 FORBIDDEN \"Не найден пользователь пользователь-хозяин по ID: " + ownerId + ", для возврата списка с фильтром " + filter +"\"";
+        String exceptionMessageExpected = "403 FORBIDDEN \"Не найден пользователь пользователь-хозяин по ID: " + ownerId + ", для возврата списка с фильтром " + filter + "\"";
 
         assertEquals(statusExpected, resException.getStatusCode());
         assertEquals(exceptionMessageExpected, resException.getMessage());

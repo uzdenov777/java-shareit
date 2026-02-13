@@ -153,7 +153,7 @@ public class BookingService {
         return listBookingResponse;
     }
 
-    public List<BookingResponse> getListAllBookingsForCurrentOwner(Long userId, BookingStateFilter bookingStateFilter, int from, int size) throws ResponseStatusException{
+    public List<BookingResponse> getListAllBookingsForCurrentOwner(Long userId, BookingStateFilter bookingStateFilter, int from, int size) throws ResponseStatusException {
         boolean isExistOwner = userService.existsUser(userId);
 
         if (!isExistOwner) {

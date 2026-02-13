@@ -15,7 +15,6 @@ import ru.practicum.shareit.request.model.dto.ItemRequestDto;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
-import ru.practicum.shareit.util.MyPageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -222,7 +221,8 @@ class ItemRequestServiceTest {
         Long requestorId = requestor.getId();
 
         when(userService.existsUser(requestorId)).thenReturn(true);
-        when(itemRequestRepository.findByRequestorId(requestorId))
+        when(userService.getUserById(requestorId)).thenReturn(requestor);
+        when(itemRequestRepository.findByRequestor(requestor))
                 .thenAnswer(i ->
                 {
                     itemRequest.setId(1L);
@@ -237,7 +237,7 @@ class ItemRequestServiceTest {
 
         //then
         //ожидаемые значения
-        Long itemRequestIdExpected = 1L;
+        Long itemRequestIdExpected = requestorId;
         String descriptionExpected = "Описание";
 
         //проверка
@@ -250,7 +250,8 @@ class ItemRequestServiceTest {
         assertEquals(1, result.size());
 
         verify(userService).existsUser(requestorId);
-        verify(itemRequestRepository).findByRequestorId(requestorId);
+        verify(userService).getUserById(requestorId);
+        verify(itemRequestRepository).findByRequestor(requestor);
     }
 
     @Test
@@ -274,7 +275,7 @@ class ItemRequestServiceTest {
 
         verify(userService).existsUser(nonExistRequestorId);
         verify(userService, never()).getUserById(anyLong());
-        verify(itemRequestRepository, never()).findByRequestorId(any());
+        verify(itemRequestRepository, never()).findByRequestor(any());
     }
 
     @Test
@@ -285,7 +286,8 @@ class ItemRequestServiceTest {
         Long requestorId = requestor.getId();
 
         when(userService.existsUser(requestorId)).thenReturn(true);
-        when(itemRequestRepository.findByRequestorIdNot(any(), any()))
+        when(userService.getUserById(requestorId)).thenReturn(requestor);
+        when(itemRequestRepository.findByRequestorNot(any(), any()))
                 .thenAnswer(i ->
                 {
                     itemRequest.setId(1L);
@@ -316,7 +318,8 @@ class ItemRequestServiceTest {
         assertEquals(1, result.size());
 
         verify(userService).existsUser(requestorId);
-        verify(itemRequestRepository).findByRequestorIdNot(any(), any());
+        verify(userService).getUserById(requestorId);
+        verify(itemRequestRepository).findByRequestorNot(any(), any());
     }
 
     @Test
@@ -341,6 +344,6 @@ class ItemRequestServiceTest {
         assertEquals(exceptionMessage, resException.getMessage());
         verify(userService).existsUser(notExistsRequestorId);
         verify(userService, never()).getUserById(anyLong());
-        verify(itemRequestRepository, never()).findByRequestorIdNot(any(), any());
+        verify(itemRequestRepository, never()).findByRequestorNot(any(), any());
     }
 }
