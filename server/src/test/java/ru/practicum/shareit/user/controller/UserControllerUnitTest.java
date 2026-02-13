@@ -24,6 +24,12 @@ class UserControllerUnitTest {
 
     private UserDto userDto;
 
+    @Mock
+    private UserService userService;
+
+    @InjectMocks
+    private UserController userController;
+
     @BeforeEach
     void setUp() {
         String name = "John";
@@ -33,12 +39,6 @@ class UserControllerUnitTest {
         userDto.setName(name);
         userDto.setEmail(email);
     }
-
-    @Mock
-    private UserService userService;
-
-    @InjectMocks
-    private UserController userController;
 
     @Test
     void saveUser_whenUserValid_thenSaveUser() {

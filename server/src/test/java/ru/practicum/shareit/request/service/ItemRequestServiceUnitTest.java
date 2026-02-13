@@ -15,7 +15,6 @@ import ru.practicum.shareit.request.model.dto.ItemRequestDto;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
-import ru.practicum.shareit.util.MyPageRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ItemRequestServiceTest {
+class ItemRequestServiceUnitTest {
 
     @Mock
     private ItemRequestRepository itemRequestRepository;

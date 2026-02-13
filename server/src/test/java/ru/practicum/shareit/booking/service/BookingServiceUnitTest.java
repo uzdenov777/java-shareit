@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-class BookingServiceTest {
+class BookingServiceUnitTest {
 
     @Mock
     private BookingRepository bookingRepository;

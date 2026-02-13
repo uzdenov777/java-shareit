@@ -21,7 +21,6 @@ import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemResponse;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
-import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -33,7 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ItemServiceTest {
+class ItemServiceUnitTest {
 
     @Mock
     private ItemRepository itemRepository;
@@ -45,17 +44,12 @@ class ItemServiceTest {
     private BookingRepository bookingRepository;
 
     @Mock
-    private ItemRequestService itemRequestService;
-
-    @Mock
     private UserService userService;
 
     @InjectMocks
     private ItemService itemService;
 
     private ItemDto itemDto;
-
-    private ItemResponse itemResponse;
 
     private User owner;
 

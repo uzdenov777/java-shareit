@@ -22,9 +22,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserServiceUnitTest {
 
     private UserDto userDto;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private UserService userService;
 
     @BeforeEach
     public void setUp() {
@@ -35,12 +41,6 @@ class UserServiceTest {
         userDto.setName(name);
         userDto.setEmail(email);
     }
-
-    @Mock
-    private UserRepository userRepository;
-
-    @InjectMocks
-    private UserService userService;
 
     @Test
     void addUser_whenInputUserValid_thenSaveUser() {

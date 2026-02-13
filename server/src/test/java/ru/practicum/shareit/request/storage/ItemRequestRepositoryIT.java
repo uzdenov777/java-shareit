@@ -35,7 +35,6 @@ class ItemRequestRepositoryIT {
     private User anotherRequestor;
 
     private Long requestorId;
-    private Long anotherRequestorId;
     private MyPageRequest pageRequest;
 
     @BeforeEach
@@ -51,7 +50,6 @@ class ItemRequestRepositoryIT {
         entityManager.persist(requestor);
         entityManager.persist(anotherRequestor);
         requestorId = requestor.getId();
-        anotherRequestorId = anotherRequestor.getId();
 
         itemRequest = new ItemRequest();
         itemRequest.setRequestor(requestor);

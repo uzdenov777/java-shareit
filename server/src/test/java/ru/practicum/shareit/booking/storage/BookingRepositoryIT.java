@@ -37,7 +37,6 @@ class BookingRepositoryIT {
     private Long bookerId;
     private Long ownerId;
     private Long itemId;
-    private Long bookingId;
 
     @BeforeEach
     void setUp() {
@@ -68,7 +67,6 @@ class BookingRepositoryIT {
         booking.setEnd(LocalDateTime.now().plusDays(1));
         booking.setStatus(BookingStatus.WAITING);
         entityManager.persist(booking);
-        bookingId = booking.getId();
 
         myPageRequest = new MyPageRequest(0, 10);
     }
