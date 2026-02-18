@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +26,12 @@ public class ItemController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid ItemDto newItemDto) {
+    public ResponseEntity<Object> add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid @NonNull ItemDto newItemDto) {
         return itemClient.add(ownerId, newItemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ResponseEntity<Object> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody ItemDto itemDto) {
+    public ResponseEntity<Object> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody @NonNull ItemDto itemDto) {
         return itemClient.updateItem(userId, itemId, itemDto);
     }
 
@@ -55,18 +56,9 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody CommentRequest commentRequest) {
-        String textComment = commentRequest.getText();
+    public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody @Valid @NonNull CommentRequest commentRequest) {
 
-        log.info("Добавление комментария: {} для вещи по ID: {} пользователем по ID: {}", textComment, itemId, userId);
-
-        if (textComment.isBlank()) {
-            log.error("Передан пустой текст комментария для вещи по ID: {} пользователем по ID: {}", itemId, userId);
-            Map<String, String> errors = new HashMap<>();
-            errors.put("errors", "Не верно переданные данные в теле");
-
-            return ResponseEntity.badRequest().body(errors);
-        }
+        log.info("Добавление комментария: {} для вещи по ID: {} пользователем по ID: {}", commentRequest, itemId, userId);
 
         return itemClient.addComment(userId, itemId, commentRequest);
     }

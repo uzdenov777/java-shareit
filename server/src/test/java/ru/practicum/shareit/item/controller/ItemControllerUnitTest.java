@@ -318,29 +318,11 @@ class ItemControllerUnitTest {
         when(itemService.addComment(userId, itemId, textComment)).thenReturn(commentResponse);
 
         //when
-        ResponseEntity<Object> response = itemController.addComment(userId, itemId, commentRequest);
+        CommentResponse response = itemController.addComment(userId, itemId, commentRequest);
 
         //then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(commentResponse, response.getBody());
+        assertEquals(commentResponse, response);
         verify(itemService).addComment(userId, itemId, textComment);
-    }
-
-    @Test
-    void addComment_whenTextCommentBlank_thenReturnResponseIsCode400() {
-        //given
-        commentRequest.setText(""); //установили пустой текст коммента
-
-        //Параметры для запроса
-        Long itemId = 1L;
-        String textComment = commentRequest.getText();
-
-        //when
-        ResponseEntity<Object> response = itemController.addComment(userId, itemId, commentRequest);
-
-        //then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(itemService, never()).addComment(userId, itemId, textComment);
     }
 
     @Test

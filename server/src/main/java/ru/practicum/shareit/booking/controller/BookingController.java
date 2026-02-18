@@ -51,7 +51,7 @@ public class BookingController {
     }
 
     @GetMapping
-    public ResponseEntity<Object> getListAllBookingsForCurrentBooker(@RequestHeader("X-Sharer-User-Id") @NotNull Long userId,
+    public ResponseEntity<Object> getAllBookingsForCurrentBooker(@RequestHeader("X-Sharer-User-Id") @NotNull Long userId,
                                                                      @RequestParam(name = "state", defaultValue = "all") String state,
                                                                      @RequestParam(name = "from", defaultValue = "0") int from,
                                                                      @RequestParam(name = "size", defaultValue = "10") int size) {
@@ -73,7 +73,7 @@ public class BookingController {
     }
 
     @GetMapping("/owner")
-    public ResponseEntity<Object> getListBookingsForCurrentOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
+    public ResponseEntity<Object> getBookingsForCurrentOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                                  @RequestParam(name = "state", defaultValue = "all") String state,
                                                                  @RequestParam(name = "from", defaultValue = "0") int from,
                                                                  @RequestParam(name = "size", defaultValue = "10") int size) {

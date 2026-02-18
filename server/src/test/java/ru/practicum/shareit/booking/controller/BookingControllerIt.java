@@ -133,9 +133,9 @@ class BookingControllerIT {
 
     @SneakyThrows
     @Test
-    void addBooking_whenNotValidRequestUserIdIsNull_thenReturnBadRequest() {
+    void addBooking_whenUserIdIsNull_thenReturnBadRequest() {
 
-        //не передаем в запросе "X-Sharer-User-Id" == userId = null
+        //не передаем в запросе заголовок "X-Sharer-User-Id" == userId = null
         //when+then
         mockMvc.perform(post("/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -460,7 +460,7 @@ class BookingControllerIT {
 
     @Test
     @SneakyThrows
-    void getListAllBookingsForCurrentBooker_whenRequestValidAndPassedFromSizeState_thenReturnIsNotEmptyList() {
+    void getAllBookingsForCurrentBooker_whenRequestValidAndPassedFromSizeState_thenReturnIsNotEmptyList() {
         //given
         Long bookerId = 1L;
         BookingStateFilter stateFilter = BookingStateFilter.ALL;
@@ -474,6 +474,7 @@ class BookingControllerIT {
                     return List.of(bookingResponse);
                 });
 
+        //when+then
         mockMvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", bookerId)
                         .param("state", stateFilter.toString())
@@ -587,18 +588,6 @@ class BookingControllerIT {
                 .andExpect(jsonPath("$.error").value("Unknown state: INVALID_STATE"));
 
         verify(bookingService, never()).getListAllBookingsForCurrentUser(anyLong(), any(), anyInt(), anyInt());
-    }
-
-    @Test
-    void getListBookingsForCurrentOwner() {
-        //given
-
-
-        //when
-
-
-        //then
-
     }
 
     @Test

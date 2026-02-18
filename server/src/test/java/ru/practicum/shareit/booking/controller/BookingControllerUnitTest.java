@@ -147,7 +147,7 @@ class BookingControllerUnitTest {
     }
 
     @Test
-    void getListAllBookingsForCurrentBooker_whenRequestValid_thenReturnResponse200AndBodyNotEmptyList() {
+    void getAllBookingsForCurrentBooker_whenRequestValid_thenReturnResponse200AndBodyNotEmptyList() {
         //given
         Long userId = 1L;
         String stateToString = "all";
@@ -159,7 +159,7 @@ class BookingControllerUnitTest {
         when(bookingService.getListAllBookingsForCurrentUser(userId, state, from, size)).thenReturn(bookings);
 
         //when
-        ResponseEntity<Object> res = bookingController.getListAllBookingsForCurrentBooker(userId, stateToString, from, size);
+        ResponseEntity<Object> res = bookingController.getAllBookingsForCurrentBooker(userId, stateToString, from, size);
 
         //then
         assertEquals(HttpStatus.OK, res.getStatusCode());
@@ -168,7 +168,7 @@ class BookingControllerUnitTest {
     }
 
     @Test
-    void getListAllBookingsForCurrentBooker_whenRequestNotValid_thenThrowsResponseStatusException() {
+    void getAllBookingsForCurrentBooker_whenRequestNotValid_thenThrowsResponseStatusException() {
         //given
         Long userId = 1L;
         String stateToString = "all";
@@ -184,7 +184,7 @@ class BookingControllerUnitTest {
 
         //when
         ResponseStatusException resException = assertThrows(ResponseStatusException.class
-                , () -> bookingController.getListAllBookingsForCurrentBooker(userId, stateToString, from, size));
+                , () -> bookingController.getAllBookingsForCurrentBooker(userId, stateToString, from, size));
 
         //then
         assertEquals(exception, resException);
@@ -192,7 +192,7 @@ class BookingControllerUnitTest {
     }
 
     @Test
-    void getListAllBookingsForCurrentBooker_whenStateNotExist_thenThrowsResponseStatusException() {
+    void getAllBookingsForCurrentBooker_whenStateNotExist_thenThrowsResponseStatusException() {
         //given
         Long userId = 1L;
         String stateToString = "NotExistsState";
@@ -200,7 +200,7 @@ class BookingControllerUnitTest {
         int size = 10;
 
         //when
-        ResponseEntity<Object> response = bookingController.getListAllBookingsForCurrentBooker(userId, stateToString, from, size);
+        ResponseEntity<Object> response = bookingController.getAllBookingsForCurrentBooker(userId, stateToString, from, size);
 
         //then
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -210,7 +210,7 @@ class BookingControllerUnitTest {
     }
 
     @Test
-    void getListBookingsForCurrentOwner_whenRequestValid_thenReturnResponse200AndBodyNotEmptyList() {
+    void getBookingsForCurrentOwner_whenRequestValid_thenReturnResponse200AndBodyNotEmptyList() {
         //given
         Long ownerId = 1L;
         String stateToString = "all";
@@ -222,7 +222,7 @@ class BookingControllerUnitTest {
         when(bookingService.getListAllBookingsForCurrentOwner(ownerId, state, from, size)).thenReturn(bookings);
 
         //when
-        ResponseEntity<Object> res = bookingController.getListBookingsForCurrentOwner(ownerId, stateToString, from, size);
+        ResponseEntity<Object> res = bookingController.getBookingsForCurrentOwner(ownerId, stateToString, from, size);
 
         //then
         assertEquals(HttpStatus.OK, res.getStatusCode());
@@ -231,7 +231,7 @@ class BookingControllerUnitTest {
     }
 
     @Test
-    void getListBookingsForCurrentOwner_whenRequestNotValid_thenThrowsResponseStatusException() {
+    void getBookingsForCurrentOwner_whenRequestNotValid_thenThrowsResponseStatusException() {
         //given
         Long ownerId = 1L;
         String stateToString = "all";
@@ -247,7 +247,7 @@ class BookingControllerUnitTest {
 
         //when
         ResponseStatusException resException = assertThrows(ResponseStatusException.class
-                , () -> bookingController.getListBookingsForCurrentOwner(ownerId, stateToString, from, size));
+                , () -> bookingController.getBookingsForCurrentOwner(ownerId, stateToString, from, size));
 
         //then
         assertEquals(exception, resException);
@@ -255,7 +255,7 @@ class BookingControllerUnitTest {
     }
 
     @Test
-    void getListBookingsForCurrentOwner_whenStateNotExist_thenThrowsResponseStatusException() {
+    void getBookingsForCurrentOwner_whenStateNotExist_thenThrowsResponseStatusException() {
         //given
         Long ownerId = 1L;
         String stateToString = "NotExistsState";
@@ -263,7 +263,7 @@ class BookingControllerUnitTest {
         int size = 10;
 
         //when
-        ResponseEntity<Object> response = bookingController.getListBookingsForCurrentOwner(ownerId, stateToString, from, size);
+        ResponseEntity<Object> response = bookingController.getBookingsForCurrentOwner(ownerId, stateToString, from, size);
 
         //then
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;

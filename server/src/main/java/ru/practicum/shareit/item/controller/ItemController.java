@@ -23,6 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/items")
 public class ItemController {
+
     private final ItemService itemService;
 
     public ItemController(ItemService itemService) {
@@ -30,13 +31,17 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemResponse add(@RequestHeader("X-Sharer-User-Id") @NonNull Long ownerId, @RequestBody @Valid @NonNull ItemDto newItemDto) {
+    public ItemResponse add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid ItemDto newItemDto) {
+        log.info("Добавление вещи: {} пользователем по ID: {}", newItemDto, ownerId);
+
         return itemService.add(ownerId, newItemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemResponse updateItem(@RequestHeader("X-Sharer-User-Id") @NonNull Long userId, @PathVariable @NonNull Long itemId, @RequestBody @NonNull ItemDto itemDto) {
-        return itemService.updateItem(userId, itemId, itemDto);
+    public ItemResponse updateItem(@RequestHeader("X-Sharer-User-Id") Long ownerId, @PathVariable Long itemId, @RequestBody @NonNull ItemDto itemDto) {
+        log.info("Обновление вещи по ID: {} пользователем по ID: {}", itemId, ownerId);
+
+        return itemService.updateItem(ownerId, itemId, itemDto);
     }
 
     @GetMapping("/{itemId}")
@@ -55,7 +60,7 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemResponse> searchItem(@RequestParam(defaultValue = "") String text,
+    public List<ItemResponse> searchItem(@RequestParam(name = "text", defaultValue = "") String text,
                                          @RequestHeader("X-Sharer-User-Id") Long userId,
                                          @RequestParam(name = "from", defaultValue = "0") int from,
                                          @RequestParam(name = "size", defaultValue = "10") int size) {
@@ -63,20 +68,12 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody CommentRequest commentRequest) {
+    public CommentResponse addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody @Valid @NonNull CommentRequest commentRequest) {
         String textComment = commentRequest.getText();
 
         log.info("Добавление комментария: {} для вещи по ID: {} пользователем по ID: {}", textComment, itemId, userId);
 
-        if (textComment.isBlank()) {
-            log.error("Передан пустой текст комментария для вещи по ID: {} пользователем по ID: {}", itemId, userId);
-            Map<String, String> errors = new HashMap<>();
-            errors.put("errors", "Не верно переданные данные в теле");
-
-            return ResponseEntity.badRequest().body(errors);
-        }
-
         CommentResponse comment = itemService.addComment(userId, itemId, textComment);
-        return ResponseEntity.ok(comment);
+        return comment;
     }
 }
