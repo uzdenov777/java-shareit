@@ -32,6 +32,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class ItemService {
+
     private final ItemRepository itemRepository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;

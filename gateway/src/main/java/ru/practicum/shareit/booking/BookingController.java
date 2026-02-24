@@ -19,6 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(path = "/bookings")
 public class BookingController {
+
     private final BookingClient bookingClient;
 
     @Autowired
@@ -35,7 +36,7 @@ public class BookingController {
     @PatchMapping("/{bookingId}")
     public ResponseEntity<Object> confirmingOrRejectingBookingRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                                       @PathVariable("bookingId") Long bookingId,
-                                                                      @RequestParam @NotNull Boolean approved) {
+                                                                      @RequestParam Boolean approved) {
         log.info("Запрос на подтверждение или отклонение запроса на бронирование по ID: {}, пользователем по ID: {}, решение: {}", bookingId, userId, approved);
         return bookingClient.confirmingOrRejectingBookingRequest(userId, bookingId, approved);
     }
@@ -54,7 +55,7 @@ public class BookingController {
         try {
             log.info("Запрос на возвращение всех бронирований со статусом {} текущего арендодателя по ID: {}", state, userId);
 
-            BookingStateFilter bookingStateFilter = BookingStateFilter.valueOf(state.toUpperCase());//Пробуем привести к Enum, если что ловим ошибку
+            BookingStateFilter.valueOf(state.toUpperCase());//Пробуем привести к Enum, если что ловим ошибку
 
             ResponseEntity<Object> resBookings = bookingClient.getListAllBookingsForCurrentUser(userId, state, from, size);
             return resBookings;

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request.controller;
 
 import jakarta.validation.Valid;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +28,13 @@ public class ItemRequestController {
     }
 
     @PostMapping
-    public ItemRequest create(@RequestHeader("X-Sharer-User-Id") Long requestorId, @RequestBody @Valid ItemRequest itemRequestDto) {
-        log.info("Пользователь по ID: {} создает на вещь запрос: {}", requestorId, itemRequestDto);
-        return itemRequestService.create(requestorId, itemRequestDto);
+    public ItemRequest create(@RequestHeader("X-Sharer-User-Id") Long requestorId, @RequestBody @Valid @NonNull ItemRequest itemRequest) {
+        log.info("Пользователь по ID: {} создает на вещь запрос: {}", requestorId, itemRequest);
+        return itemRequestService.create(requestorId, itemRequest);
     }
 
     @GetMapping("/{requestId}")
-    public ItemRequestDto getItemRequestById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable("requestId") Long requestId) {
+    public ItemRequestDto getItemRequestById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long requestId) {
         return itemRequestService.getItemRequestDtoById(requestId, userId);
     }
 

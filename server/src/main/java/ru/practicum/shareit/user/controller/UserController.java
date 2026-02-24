@@ -19,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/users")
 public class UserController {
+
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -30,7 +31,9 @@ public class UserController {
         try {
             log.info("Сохранение пользователя {}", userDto);
             UserDto userDtoSave = userService.addUser(userDto);
+
             return ResponseEntity.ok(userDtoSave);
+
         } catch (ConstraintViolationException e) {
             HashMap<String, String> error = new HashMap<>();
             String errorMessage = e.getMessage();

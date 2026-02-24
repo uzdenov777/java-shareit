@@ -23,6 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(path = "/bookings")
 public class BookingController {
+
     private final BookingService bookingService;
 
     @Autowired
@@ -52,9 +53,9 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> getAllBookingsForCurrentBooker(@RequestHeader("X-Sharer-User-Id") @NotNull Long userId,
-                                                                     @RequestParam(name = "state", defaultValue = "all") String state,
-                                                                     @RequestParam(name = "from", defaultValue = "0") int from,
-                                                                     @RequestParam(name = "size", defaultValue = "10") int size) {
+                                                                 @RequestParam(name = "state", defaultValue = "all") String state,
+                                                                 @RequestParam(name = "from", defaultValue = "0") int from,
+                                                                 @RequestParam(name = "size", defaultValue = "10") int size) {
         try {
             log.info("Запрос на возвращение всех бронирований со статусом {} текущего арендодателя по ID: {}", state, userId);
 
@@ -74,9 +75,9 @@ public class BookingController {
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getBookingsForCurrentOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                                 @RequestParam(name = "state", defaultValue = "all") String state,
-                                                                 @RequestParam(name = "from", defaultValue = "0") int from,
-                                                                 @RequestParam(name = "size", defaultValue = "10") int size) {
+                                                             @RequestParam(name = "state", defaultValue = "all") String state,
+                                                             @RequestParam(name = "from", defaultValue = "0") int from,
+                                                             @RequestParam(name = "size", defaultValue = "10") int size) {
         try {
             BookingStateFilter bookingStateFilter = BookingStateFilter.valueOf(state.toUpperCase());
             log.info("Запрос на возвращение всех бронирований со статусом {} текущего хозяина по ID: {}", bookingStateFilter, userId);

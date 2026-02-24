@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.controller;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.model.dto.CommentRequest;
 import ru.practicum.shareit.item.model.dto.CommentResponse;
@@ -11,9 +10,7 @@ import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemResponse;
 import ru.practicum.shareit.item.service.ItemService;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * TODO Sprint add-controllers.

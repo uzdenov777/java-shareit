@@ -164,7 +164,7 @@ class BookingControllerIT {
 
     @SneakyThrows
     @Test
-    void addBooking_whenEmptyBookingRequest_thenReturnBadRequest() {
+    void addBooking_whenEmptyBody_thenReturnBadRequest() {
         //given
         Long bookerId = 1L;
 
