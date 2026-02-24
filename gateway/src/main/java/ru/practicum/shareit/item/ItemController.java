@@ -1,15 +1,11 @@
 package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.model.dto.CommentRequest;
 import ru.practicum.shareit.item.model.dto.ItemDto;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * TODO Sprint add-controllers.
@@ -19,6 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/items")
 public class ItemController {
+
     private final ItemClient itemClient;
 
     public ItemController(ItemClient itemClient) {
@@ -26,12 +23,12 @@ public class ItemController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid @NonNull ItemDto newItemDto) {
+    public ResponseEntity<Object> add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid ItemDto newItemDto) {
         return itemClient.add(ownerId, newItemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ResponseEntity<Object> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody @NonNull ItemDto itemDto) {
+    public ResponseEntity<Object> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody ItemDto itemDto) {
         return itemClient.updateItem(userId, itemId, itemDto);
     }
 
@@ -56,7 +53,7 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody @Valid @NonNull CommentRequest commentRequest) {
+    public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody @Valid CommentRequest commentRequest) {
 
         log.info("Добавление комментария: {} для вещи по ID: {} пользователем по ID: {}", commentRequest, itemId, userId);
 

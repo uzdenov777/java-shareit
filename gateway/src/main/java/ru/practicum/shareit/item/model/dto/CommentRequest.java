@@ -7,5 +7,5 @@ import lombok.Data;
 public class CommentRequest {
 
     @NotBlank(message = "Текст комментария не должен быть пустым")
-    String text;
+    private String text;
 }

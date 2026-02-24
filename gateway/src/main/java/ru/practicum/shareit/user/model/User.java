@@ -16,6 +16,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User {
+
     private Long id;
 
     @NotBlank(message = "name у пользователя не может отсутствовать")

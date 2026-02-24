@@ -19,6 +19,7 @@ import java.util.HashMap;
 @RequestMapping(path = "/users")
 
 public class UserController {
+
     private final UserClient userClient;
 
     @Autowired

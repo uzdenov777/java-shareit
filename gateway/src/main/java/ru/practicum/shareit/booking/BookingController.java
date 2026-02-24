@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +34,14 @@ public class BookingController {
 
     @PatchMapping("/{bookingId}")
     public ResponseEntity<Object> confirmingOrRejectingBookingRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                                      @PathVariable("bookingId") Long bookingId,
+                                                                      @PathVariable Long bookingId,
                                                                       @RequestParam Boolean approved) {
         log.info("Запрос на подтверждение или отклонение запроса на бронирование по ID: {}, пользователем по ID: {}, решение: {}", bookingId, userId, approved);
         return bookingClient.confirmingOrRejectingBookingRequest(userId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")
-    public ResponseEntity<Object> getBookingById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable("bookingId") Long bookingId) throws ResponseStatusException {
+    public ResponseEntity<Object> getBookingById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long bookingId) throws ResponseStatusException {
         log.info("Запрос на возвращение бронирования по ID: {}, пользователем по ID: {}", bookingId, userId);
         return bookingClient.getBookingById(userId, bookingId);
     }
