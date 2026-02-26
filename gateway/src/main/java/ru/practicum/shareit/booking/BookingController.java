@@ -58,35 +58,39 @@ public class BookingController {
 
             ResponseEntity<Object> resBookings = bookingClient.getListAllBookingsForCurrentUser(userId, state, from, size);
             return resBookings;
+
         } catch (IllegalArgumentException e) {
             log.error("Был передан не существующий статус при запросе на возвращении всех бронирований со статусом {} текущего арендодателя по ID: {}", state, userId);
 
             Map<String, String> errorBody = new HashMap<>();
             errorBody.put("error", "Unknown state: " + state);
 
-            return ResponseEntity.internalServerError().body(errorBody);
+            return ResponseEntity.badRequest().body(errorBody);
         }
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getListBookingsForCurrentOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                                 @RequestParam(name = "state", defaultValue = "all") String state,
+                                                                 @RequestParam(name = "state", defaultValue = "ALL") String state,
                                                                  @RequestParam(name = "from", defaultValue = "0") int from,
                                                                  @RequestParam(name = "size", defaultValue = "10") int size) {
         try {
             log.info("Запрос на возвращение всех бронирований со статусом {} текущего хозяина по ID: {}", state, userId);
 
             //Пробуем привести к Enum, если что ловим ошибку
-            BookingStateFilter bookingStateFilter = BookingStateFilter.valueOf(state.toUpperCase());
+            BookingStateFilter.valueOf(state.toUpperCase());
 
             ResponseEntity<Object> resBookings = bookingClient.getListAllBookingsForCurrentOwner(userId, state, from, size);
+
             return resBookings;
+
         } catch (IllegalArgumentException e) {
             log.error("Был передан не существующий статус при запросе на возвращении всех бронирований со статусом {} текущего хозяина по ID: {}", state, userId);
 
             Map<String, String> errorBody = new HashMap<>();
             errorBody.put("error", "Unknown state: " + state);
-            return ResponseEntity.internalServerError().body(errorBody);
+
+            return ResponseEntity.badRequest().body(errorBody);
         }
     }
 }

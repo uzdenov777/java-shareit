@@ -570,7 +570,7 @@ class BookingControllerIT {
 
     @Test
     @SneakyThrows
-    void getListAllBookingsForCurrentBooker_whenInvalidState_thenInternalServerError() {
+    void getListAllBookingsForCurrentBooker_whenInvalidState_thenBadRequest() {
         //given
         Long bookerId = 1L;
         String stateFilter = "INVALID_STATE";
@@ -584,7 +584,7 @@ class BookingControllerIT {
                         .param("state", stateFilter)
                         .param("from", Integer.toString(from))
                         .param("size", Integer.toString(size)))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Unknown state: INVALID_STATE"));
 
         verify(bookingService, never()).getListAllBookingsForCurrentUser(anyLong(), any(), anyInt(), anyInt());
@@ -702,7 +702,7 @@ class BookingControllerIT {
 
     @Test
     @SneakyThrows
-    void getListBookingsForCurrentOwner_whenInvalidState_thenInternalServerError() {
+    void getListBookingsForCurrentOwner_whenInvalidState_thenBadRequest() {
         //given
         Long bookerId = 1L;
         String stateFilter = "INVALID_STATE";
@@ -716,7 +716,7 @@ class BookingControllerIT {
                         .param("state", stateFilter)
                         .param("from", Integer.toString(from))
                         .param("size", Integer.toString(size)))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Unknown state: INVALID_STATE"));
 
         verify(bookingService, never()).getListAllBookingsForCurrentOwner(anyLong(), any(), anyInt(), anyInt());

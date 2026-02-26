@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,27 +31,30 @@ public class BookingController {
     }
 
     @PostMapping
-    public BookingResponse addBooking(@RequestHeader("X-Sharer-User-Id") @NotNull Long bookerId, @RequestBody @Valid BookingRequest booking) {
+    public BookingResponse addBooking(@RequestHeader("X-Sharer-User-Id") Long bookerId,
+                                      @RequestBody @Valid BookingRequest booking) {
         log.info("Запрос на добавление нового бронирования {}, пользователем по ID: {}", booking, bookerId);
         return bookingService.add(bookerId, booking);
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingResponse confirmingOrRejectingBookingRequest(@RequestHeader("X-Sharer-User-Id") @NotNull Long userId,
-                                                               @PathVariable("bookingId") @NotNull Long bookingId,
-                                                               @RequestParam @NotNull Boolean approved) {
+    public BookingResponse confirmingOrRejectingBookingRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                               @PathVariable Long bookingId,
+                                                               @RequestParam Boolean approved) {
         log.info("Запрос на подтверждение или отклонение запроса на бронирование по ID: {}, пользователем по ID: {}, решение: {}", bookingId, userId, approved);
+
         return bookingService.confirmingOrRejectingBookingRequest(userId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")
-    public BookingResponse getBookingById(@RequestHeader("X-Sharer-User-Id") @NotNull Long userId, @PathVariable("bookingId") Long bookingId) throws ResponseStatusException {
+    public BookingResponse getBookingById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long bookingId) throws ResponseStatusException {
         log.info("Запрос на возвращение бронирования по ID: {}, пользователем по ID: {}", bookingId, userId);
+
         return bookingService.getBookingById(userId, bookingId);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAllBookingsForCurrentBooker(@RequestHeader("X-Sharer-User-Id") @NotNull Long userId,
+    public ResponseEntity<Object> getAllBookingsForCurrentBooker(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                                  @RequestParam(name = "state", defaultValue = "all") String state,
                                                                  @RequestParam(name = "from", defaultValue = "0") int from,
                                                                  @RequestParam(name = "size", defaultValue = "10") int size) {
@@ -63,32 +65,38 @@ public class BookingController {
 
             List<BookingResponse> booking = bookingService.getListAllBookingsForCurrentUser(userId, bookingStateFilter, from, size);
             return ResponseEntity.ok(booking);
+
         } catch (IllegalArgumentException e) {
             log.error("Был передан не существующий статус при запросе на возвращении всех бронирований со статусом {} текущего арендодателя по ID: {}", state, userId);
 
             Map<String, String> errorBody = new HashMap<>();
             errorBody.put("error", "Unknown state: " + state);
 
-            return ResponseEntity.internalServerError().body(errorBody);
+            return ResponseEntity.badRequest().body(errorBody);
         }
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getBookingsForCurrentOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                             @RequestParam(name = "state", defaultValue = "all") String state,
+                                                             @RequestParam(name = "state", defaultValue = "ALL") String state,
                                                              @RequestParam(name = "from", defaultValue = "0") int from,
                                                              @RequestParam(name = "size", defaultValue = "10") int size) {
         try {
+            log.info("Запрос на возвращение всех бронирований со статусом {} текущего хозяина по ID: {}", state, userId);
+
             BookingStateFilter bookingStateFilter = BookingStateFilter.valueOf(state.toUpperCase());
-            log.info("Запрос на возвращение всех бронирований со статусом {} текущего хозяина по ID: {}", bookingStateFilter, userId);
+
             List<BookingResponse> bookings = bookingService.getListAllBookingsForCurrentOwner(userId, bookingStateFilter, from, size);
+
             return ResponseEntity.ok(bookings);
+
         } catch (IllegalArgumentException e) {
             log.error("Был передан не существующий статус при запросе на возвращении всех бронирований со статусом {} текущего хозяина по ID: {}", state, userId);
 
             Map<String, String> errorBody = new HashMap<>();
             errorBody.put("error", "Unknown state: " + state);
-            return ResponseEntity.internalServerError().body(errorBody);
+
+            return ResponseEntity.badRequest().body(errorBody);
         }
     }
 }

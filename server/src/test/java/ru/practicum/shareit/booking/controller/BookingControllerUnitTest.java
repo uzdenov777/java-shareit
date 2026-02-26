@@ -65,7 +65,8 @@ class BookingControllerUnitTest {
         when(bookingService.add(bookerId, bookingRequest)).thenThrow(exception);
 
         //when
-        ResponseStatusException resException = assertThrows(ResponseStatusException.class, () -> bookingController.addBooking(bookerId, bookingRequest));
+        ResponseStatusException resException = assertThrows(ResponseStatusException.class,
+                () -> bookingController.addBooking(bookerId, bookingRequest));
 
         //then
         assertEquals(exception, resException);
@@ -139,7 +140,8 @@ class BookingControllerUnitTest {
         when(bookingService.getBookingById(userId, bookingId)).thenThrow(exception);
 
         //when
-        ResponseStatusException resException = assertThrows(ResponseStatusException.class, () -> bookingController.getBookingById(userId, bookingId));
+        ResponseStatusException resException = assertThrows(ResponseStatusException.class, () ->
+                bookingController.getBookingById(userId, bookingId));
 
         //then
         assertEquals(exception, resException);
@@ -203,7 +205,7 @@ class BookingControllerUnitTest {
         ResponseEntity<Object> response = bookingController.getAllBookingsForCurrentBooker(userId, stateToString, from, size);
 
         //then
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
 
         assertEquals(status, response.getStatusCode());
         verify(bookingService, never()).getListAllBookingsForCurrentUser(any(), any(), anyInt(), anyInt());
@@ -266,7 +268,7 @@ class BookingControllerUnitTest {
         ResponseEntity<Object> response = bookingController.getBookingsForCurrentOwner(ownerId, stateToString, from, size);
 
         //then
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
 
         assertEquals(status, response.getStatusCode());
         verify(bookingService, never()).getListAllBookingsForCurrentOwner(any(), any(), anyInt(), anyInt());
