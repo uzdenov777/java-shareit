@@ -1,8 +1,8 @@
 package ru.practicum.shareit.booking;
 
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,16 +15,12 @@ import java.util.Map;
  * TODO Sprint add-bookings.
  */
 @Slf4j
+@AllArgsConstructor
 @RestController
 @RequestMapping(path = "/bookings")
 public class BookingController {
 
     private final BookingClient bookingClient;
-
-    @Autowired
-    public BookingController(BookingClient bookingClient) {
-        this.bookingClient = bookingClient;
-    }
 
     @PostMapping
     public ResponseEntity<Object> addBooking(@RequestHeader("X-Sharer-User-Id") Long bookerId, @RequestBody @Valid BookingRequest booking) {
@@ -56,8 +52,7 @@ public class BookingController {
 
             BookingStateFilter.valueOf(state.toUpperCase());//Пробуем привести к Enum, если что ловим ошибку
 
-            ResponseEntity<Object> resBookings = bookingClient.getListAllBookingsForCurrentUser(userId, state, from, size);
-            return resBookings;
+            return bookingClient.getListAllBookingsForCurrentUser(userId, state, from, size);
 
         } catch (IllegalArgumentException e) {
             log.error("Был передан не существующий статус при запросе на возвращении всех бронирований со статусом {} текущего арендодателя по ID: {}", state, userId);

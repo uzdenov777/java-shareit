@@ -3,6 +3,7 @@ package ru.practicum.shareit.user;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.HashMap;
  * TODO Sprint add-controllers.
  */
 @Slf4j
+@AllArgsConstructor
 @RestController
 @RequestMapping(path = "/users")
 
@@ -22,16 +24,12 @@ public class UserController {
 
     private final UserClient userClient;
 
-    @Autowired
-    public UserController(UserClient userClient) {
-        this.userClient = userClient;
-    }
-
     @PostMapping
     public ResponseEntity<Object> saveUser(@RequestBody @Valid UserDto userDto) {
         try {
             log.info("Сохранение пользователя {}", userDto);
             return userClient.addUser(userDto);
+
         } catch (ConstraintViolationException e) {
             HashMap<String, String> error = new HashMap<>();
             String errorMessage = e.getMessage();

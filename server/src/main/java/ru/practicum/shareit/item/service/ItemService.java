@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -30,40 +31,30 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
+@AllArgsConstructor
 @Service
 public class ItemService {
 
     private final ItemRepository itemRepository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
+
     private final ItemRequestService itemRequestService;
     private final UserService userService;
-
-    @Autowired
-    public ItemService(ItemRepository itemRepository, CommentRepository commentRepository, BookingRepository bookingRepository, ItemRequestService itemRequestService, UserService userService) {
-        this.itemRepository = itemRepository;
-        this.commentRepository = commentRepository;
-        this.bookingRepository = bookingRepository;
-        this.itemRequestService = itemRequestService;
-        this.userService = userService;
-    }
 
     public ItemResponse add(Long ownerId, ItemDto itemDto) {
         log.info("Происходит сохранение вещи пользователем по ID: {}, вещь: {}", ownerId, itemDto);
 
         boolean isExistsUser = userService.existsUser(ownerId);
         if (!isExistsUser) {
-            log.info("Пользователь по ID: {} не найден для сохранения вещи: {}", ownerId, itemDto);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь по ID: " + ownerId + " не найден для сохранения вещи: " + itemDto);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Пользователь по ID: " + ownerId + " не найден для сохранения вещи: " + itemDto);
         }
 
         Item newItem = toItem(ownerId, itemDto);
 
         Item save = itemRepository.save(newItem);
-
-        ItemResponse response = toItemResponse(save);
-
-        return response;
+        return toItemResponse(save);
     }
 
     public ItemResponse updateItem(Long ownerId, Long itemId, ItemDto itemDto) throws ResponseStatusException {
@@ -72,7 +63,6 @@ public class ItemService {
         Optional<Item> itemOpt = itemRepository.findById(itemId);
 
         if (itemOpt.isEmpty()) {
-            log.info("Вещь для обновления не найдена по ID:{}", itemId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Вещь для обновления не найдена по ID: " + itemId);
         }
 
@@ -101,9 +91,7 @@ public class ItemService {
         }
 
         Item updatedItem = itemRepository.save(existingItem);
-        ItemResponse response = toItemResponse(updatedItem);
-
-        return response;
+        return toItemResponse(updatedItem);
     }
 
     public ItemResponse getItemResponseByIdFromUser(Long userId, Long itemId) throws ResponseStatusException {
@@ -111,13 +99,11 @@ public class ItemService {
 
         boolean isExistUser = userService.existsUser(userId);
         if (!isExistUser) {
-            log.error("Не найден пользователь по ID: {}", userId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + userId);
         }
 
         Optional<Item> itemOpt = itemRepository.findById(itemId);
         if (itemOpt.isEmpty()) {
-            log.error("Не найдена вещь по ID: {}", itemId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID: " + itemId);
         }
 
@@ -127,31 +113,26 @@ public class ItemService {
 
         boolean userIsOwner = ownerId.equals(userId);
         if (userIsOwner) {
-            ItemResponse foundItemForOwner = toItemResponseForOwner(foundItem);
-            return foundItemForOwner;
+            return toItemResponseForOwner(foundItem);
         }
 
-        ItemResponse response = toItemResponse(foundItem);
-
-        return response;
+        return toItemResponse(foundItem);
     }
 
     public Item getItemById(Long itemId) throws ResponseStatusException {
         Optional<Item> itemOpt = itemRepository.findById(itemId);
         if (itemOpt.isEmpty()) {
-            log.info("Не найдена вещь по ID:{}", itemId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID:" + itemId);
         }
 
-        Item existingItem = itemOpt.get();
-        return existingItem;
+        return itemOpt.get();
     }
 
     public List<ItemResponse> getAllItemsFromUser(Long userId, int from, int size) {
         boolean isExistsUser = userService.existsUser(userId);
         if (!isExistsUser) {
-            log.info("Владелец вещей по ID:{} не найден в базе данных при возврате всех его вещей", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Владелец вещей по ID: " + userId + " не найден в базе данных для возврате всех его вещей");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Владелец вещей по ID: " + userId + " не найден в базе данных для возврате всех его вещей");
         }
 
         MyPageRequest pageRequest = new MyPageRequest(from, size);
@@ -196,19 +177,18 @@ public class ItemService {
 
         boolean isExistsUser = userService.existsUser(authorId);
         if (!isExistsUser) {
-            log.info("При добавлении комментария вещи по ID: {} не найден пользователь с ID: {}", itemId, authorId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "При добавлении комментария вещи по ID: " + itemId + " не найден пользователь с ID: " + authorId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "При добавлении комментария вещи по ID: " + itemId + " не найден пользователь с ID: " + authorId);
         }
 
         boolean isExistItem = itemRepository.existsById(itemId);
         if (!isExistItem) {
-            log.info("Не найдена вещь по ID: {}, была попытка добавить комментарий пользователем по ID: {}", itemId, authorId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найдена вещь по ID: " + itemId + ", была попытка добавить комментарий пользователем по ID: " + authorId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Не найдена вещь по ID: " + itemId + ", была попытка добавить комментарий пользователем по ID: " + authorId);
         }
 
         boolean checkUserRental = checkUserRentalHistory(authorId, itemId);
         if (!checkUserRental) {
-            log.info("Пользователь по ID: {} не имеет право добавить комментарий вещи по ID: {}, так как не брал и не завершил аренду этого предмета", authorId, itemId);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Пользователь по ID: " + authorId + " не имеет право добавить комментарий вещи по ID: " + itemId + ", так как не брал и не завершил аренду этого предмета");
         }
@@ -217,10 +197,7 @@ public class ItemService {
         comment.setCreated(LocalDateTime.now());
 
         Comment savedComment = commentRepository.save(comment);
-
-        CommentResponse commentResponse = toCommentResponse(savedComment);
-
-        return commentResponse;
+        return toCommentResponse(savedComment);
     }
 
     private boolean checkUserRentalHistory(Long authorId, Long itemId) {
@@ -242,13 +219,13 @@ public class ItemService {
         boolean isExistsUser = userService.existsUser(userId);
 
         if (!isExistsUser) {
-            log.info("Владелец вещи по ID:{} не найден в базе данных при обновлении вещи по ID:{}", userId, itemId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Владелец вещи по ID:" + userId + " не найден в базе данных при обновлении вещи по ID:" + itemId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Владелец вещи по ID:" + userId + " не найден в базе данных при обновлении вещи по ID:" + itemId);
         }
 
         if (!isUserOwner) {
-            log.info("Пользователь по ID:{} не владелец вещи по ID{}", userId, itemId);
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Пользователь по ID:" + userId + " не владелец вещи по ID:" + itemId);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Пользователь по ID:" + userId + " не владелец вещи по ID:" + itemId);
         }
     }
 

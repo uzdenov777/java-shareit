@@ -1,5 +1,6 @@
 package ru.practicum.shareit.request.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,25 +24,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
+@AllArgsConstructor
 @Service
 public class ItemRequestService {
 
     private final UserService userService;
     private final ItemRequestRepository itemRequestRepository;
 
-    @Autowired
-    public ItemRequestService(UserService userService, ItemRequestRepository itemRequestRepository) {
-        this.userService = userService;
-        this.itemRequestRepository = itemRequestRepository;
-    }
-
     public ItemRequest create(Long requestorId, ItemRequest itemRequest) {
         log.info("Пользователь по ID: {} создает на вещь запрос: {}", requestorId, itemRequest);
 
         boolean isExistUser = userService.existsUser(requestorId);
         if (!isExistUser) {
-            log.info("Не найден пользователь по ID: {} для создания запроса на вещь", requestorId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + requestorId + " для создания запроса на вещь");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Не найден пользователь по ID: " + requestorId + " для создания запроса на вещь");
         }
 
         User requestor = userService.getUserById(requestorId);
@@ -50,9 +46,7 @@ public class ItemRequestService {
         itemRequest.setRequestor(requestor);
         itemRequest.setCreated(creationDate);
 
-        ItemRequest saveItemRequest = itemRequestRepository.save(itemRequest);
-
-        return saveItemRequest;
+        return itemRequestRepository.save(itemRequest);
     }
 
     public ItemRequest getItemRequestById(Long itemRequestId) throws ResponseStatusException {
@@ -63,48 +57,41 @@ public class ItemRequestService {
             return null;
         }
 
-        ItemRequest itemRequest = itemRequestOptional.get();
-
-        return itemRequest;
+        return itemRequestOptional.get();
     }
 
     public ItemRequestDto getItemRequestDtoById(Long requestId, Long userId) throws ResponseStatusException {
         boolean isExistsUser = userService.existsUser(userId);
         if (!isExistsUser) {
-            log.info("Не найден пользователь по ID: {}, для возвращения запроса на вещь по ID: {}", userId, requestId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + userId + ", для возвращения запроса на вещь по ID: " + requestId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Не найден пользователь по ID: " + userId + ", для возвращения запроса на вещь по ID: " + requestId);
         }
 
         Optional<ItemRequest> itemRequestOptional = itemRequestRepository.findById(requestId);
         if (itemRequestOptional.isEmpty()) {
-            log.info("Не найден для возвращения по ID: {} запрос на вещи, пользователем по ID: {}", requestId, userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден для возвращения по ID: " + requestId + " запрос на вещи, пользователем по ID: " + userId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Не найден для возвращения по ID: " + requestId + " запрос на вещи, пользователем по ID: " + userId);
         }
 
         ItemRequest itemRequest = itemRequestOptional.get();
-        ItemRequestDto itemRequestDto = toItemRequestDto(itemRequest);
-        return itemRequestDto;
+        return toItemRequestDto(itemRequest);
     }
 
     public List<ItemRequestDto> getAllRequestByRequestorId(Long requestorId) throws ResponseStatusException {
 
         boolean isExistRequestor = userService.existsUser(requestorId);
         if (!isExistRequestor) {
-            log.info("Не найден пользователь по ID: {} при возвращении его запросов на вещи", requestorId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + requestorId + " при возвращении его запросов на вещи");
         }
 
         List<ItemRequest> userRequests = itemRequestRepository.findByRequestorId(requestorId);
-
-        List<ItemRequestDto> userRequestsDto = toItemRequestDtoList(userRequests);
-        return userRequestsDto;
+        return toItemRequestDtoList(userRequests);
     }
 
     public List<ItemRequestDto> getAllItemRequest(int from, int size, Long requestorId) {
 
         boolean isExistRequestor = userService.existsUser(requestorId);
         if (!isExistRequestor) {
-            log.info("Не найден пользователь по ID: {} при возвращении всех запросов кроме его собственных запросов", requestorId);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь по ID: " + requestorId + " при возвращении всех запросов кроме его собственных запросов");
         }
 
@@ -114,9 +101,7 @@ public class ItemRequestService {
         Page<ItemRequest> page = itemRequestRepository.findByRequestorIdNot(requestorId, pageRequest);
 
         List<ItemRequest> itemRequests = page.getContent();
-
-        List<ItemRequestDto> itemRequestsDto = toItemRequestDtoList(itemRequests);
-        return itemRequestsDto;
+        return toItemRequestDtoList(itemRequests);
     }
 
     private ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user.service;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -14,14 +15,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Slf4j
+@AllArgsConstructor
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-
-    public UserService(UserRepository userStorage) {
-        this.userRepository = userStorage;
-    }
 
     public UserDto addUser(UserDto userDto) throws ResponseStatusException {
         try {
@@ -30,13 +28,10 @@ public class UserService {
             User newUser = toUser(userDto);
 
             User save = userRepository.save(newUser);
-
-            UserDto savedUserDto = toUserDto(save);
-            return savedUserDto;
+            return toUserDto(save);
 
         } catch (DataIntegrityViolationException e) {
             String email = userDto.getEmail();
-            log.info("Электронная почта уже занята email: {}", email);
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Электронная почта уже занята email: " + email);
         }
     }
@@ -47,8 +42,8 @@ public class UserService {
         Optional<User> userOpt = userRepository.findById(userId);
 
         if (userOpt.isEmpty()) {
-            log.info("Не найден пользователь для обновления с ID: {}", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь для обновления с ID: " + userId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Не найден пользователь для обновления с ID: " + userId);
         }
 
         User existingUser = userOpt.get();
@@ -70,17 +65,16 @@ public class UserService {
             existingUser.setEmail(emailDto);
 
         } else {
-            log.info("Все новые поля пустые для обновления пользователя по ID: {}", userId);
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Все новые поля пустые для обновления пользователя по ID: " + userId);
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Все новые поля пустые для обновления пользователя по ID: " + userId);
         }
 
         try {
-            User updatedUser = userRepository.save(existingUser);
-            return updatedUser;
+            return userRepository.save(existingUser);
 
         } catch (DataIntegrityViolationException e) { // Может выбросить исключение из-за того новая почта уже есть в бд
-            log.info("При обновлении пользователя обнаружено что, электронная почта уже занята email: {}", emailDto);
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "При обновлении пользователя обнаружено что, электронная почта уже занята email: " + emailDto);
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "При обновлении пользователя обнаружено что, электронная почта уже занята email: " + emailDto);
         }
     }
 
@@ -90,14 +84,13 @@ public class UserService {
         Optional<User> userOpt = userRepository.findById(userId);
 
         if (userOpt.isEmpty()) {
-            log.info("Не найден пользователь для удаления с ID: {}", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь для удаления с ID: " + userId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Не найден пользователь для удаления с ID: " + userId);
         }
 
         userRepository.deleteById(userId);
 
-        User remoteUser = userOpt.get();
-        return remoteUser;
+        return userOpt.get();
     }
 
     public User getUserById(Long userId) throws ResponseStatusException {
@@ -106,12 +99,11 @@ public class UserService {
         Optional<User> userOpt = userRepository.findById(userId);
 
         if (userOpt.isEmpty()) {
-            log.info("Не найден пользователь для возвращения с ID: {}", userId);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Не найден пользователь для возвращения с ID: " + userId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Не найден пользователь для возвращения с ID: " + userId);
         }
 
-        User user = userOpt.get();
-        return user;
+        return userOpt.get();
     }
 
     public List<User> getAllUsers() {

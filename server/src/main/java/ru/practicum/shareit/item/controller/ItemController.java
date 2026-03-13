@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.controller;
 
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -17,15 +18,12 @@ import java.util.List;
  */
 
 @Slf4j
+@AllArgsConstructor
 @RestController
 @RequestMapping("/items")
 public class ItemController {
 
     private final ItemService itemService;
-
-    public ItemController(ItemService itemService) {
-        this.itemService = itemService;
-    }
 
     @PostMapping
     public ItemResponse add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid ItemDto newItemDto) {
@@ -45,8 +43,7 @@ public class ItemController {
     public ItemResponse getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId) {
         log.info("Возращение вещи по ID: {}", itemId);
 
-        ItemResponse res = itemService.getItemResponseByIdFromUser(userId, itemId);
-        return res;
+        return itemService.getItemResponseByIdFromUser(userId, itemId);
     }
 
     @GetMapping
@@ -70,7 +67,6 @@ public class ItemController {
 
         log.info("Добавление комментария: {} для вещи по ID: {} пользователем по ID: {}", textComment, itemId, userId);
 
-        CommentResponse comment = itemService.addComment(userId, itemId, textComment);
-        return comment;
+        return itemService.addComment(userId, itemId, textComment);
     }
 }

@@ -1,9 +1,9 @@
 package ru.practicum.shareit.request.controller;
 
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.model.dto.ItemRequestDto;
@@ -16,16 +16,12 @@ import java.util.List;
  */
 
 @Slf4j
+@AllArgsConstructor
 @RestController
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
 
     private final ItemRequestService itemRequestService;
-
-    @Autowired
-    public ItemRequestController(ItemRequestService itemRequestService) {
-        this.itemRequestService = itemRequestService;
-    }
 
     @PostMapping
     public ItemRequest create(@RequestHeader("X-Sharer-User-Id") Long requestorId, @RequestBody @Valid @NonNull ItemRequest itemRequest) {

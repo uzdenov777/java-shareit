@@ -36,7 +36,7 @@ public class ItemRequest {
     private User requestor;
 
     @NotNull
-    @Column(name = "description")
+    @Column(name = "description_r")
     private String description;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")

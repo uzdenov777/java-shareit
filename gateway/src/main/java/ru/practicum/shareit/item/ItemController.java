@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,15 +13,12 @@ import ru.practicum.shareit.item.model.dto.ItemDto;
  */
 
 @Slf4j
+@AllArgsConstructor
 @RestController
 @RequestMapping("/items")
 public class ItemController {
 
     private final ItemClient itemClient;
-
-    public ItemController(ItemClient itemClient) {
-        this.itemClient = itemClient;
-    }
 
     @PostMapping
     public ResponseEntity<Object> add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid ItemDto newItemDto) {
@@ -54,7 +52,6 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody @Valid CommentRequest commentRequest) {
-
         log.info("Добавление комментария: {} для вещи по ID: {} пользователем по ID: {}", commentRequest, itemId, userId);
 
         return itemClient.addComment(userId, itemId, commentRequest);
