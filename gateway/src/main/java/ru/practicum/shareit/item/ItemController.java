@@ -1,0 +1,59 @@
+package ru.practicum.shareit.item;
+
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.model.dto.CommentRequest;
+import ru.practicum.shareit.item.model.dto.ItemDto;
+
+/**
+ * TODO Sprint add-controllers.
+ */
+
+@Slf4j
+@AllArgsConstructor
+@RestController
+@RequestMapping("/items")
+public class ItemController {
+
+    private final ItemClient itemClient;
+
+    @PostMapping
+    public ResponseEntity<Object> add(@RequestHeader("X-Sharer-User-Id") Long ownerId, @RequestBody @Valid ItemDto newItemDto) {
+        return itemClient.add(ownerId, newItemDto);
+    }
+
+    @PatchMapping("/{itemId}")
+    public ResponseEntity<Object> updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody ItemDto itemDto) {
+        return itemClient.updateItem(userId, itemId, itemDto);
+    }
+
+    @GetMapping("/{itemId}")
+    public ResponseEntity<Object> getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId) {
+        return itemClient.getItemResponseByIdFromUser(userId, itemId);
+    }
+
+    @GetMapping
+    public ResponseEntity<Object> getAllItemsFromUser(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                      @RequestParam(name = "from", defaultValue = "0") int from,
+                                                      @RequestParam(name = "size", defaultValue = "10") int size) {
+        return itemClient.getAllItemsFromUser(from, size, userId);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Object> searchItem(@RequestParam(defaultValue = "") String text,
+                                             @RequestHeader("X-Sharer-User-Id") Long userId,
+                                             @RequestParam(name = "from", defaultValue = "0") int from,
+                                             @RequestParam(name = "size", defaultValue = "10") int size) {
+        return itemClient.itemSearch(text, userId, from, size);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public ResponseEntity<Object> addComment(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId, @RequestBody @Valid CommentRequest commentRequest) {
+        log.info("Добавление комментария: {} для вещи по ID: {} пользователем по ID: {}", commentRequest, itemId, userId);
+
+        return itemClient.addComment(userId, itemId, commentRequest);
+    }
+}
